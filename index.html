@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GarimpoBot — Painel da Lojinha</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#5b2140">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GarimpoBot">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   :root{--cor:#e8547a;--cor-esc:#b93a5e;--vinho:#5b2140;--creme:#fff9f5;--txt:#3a2430;--suave:#8a6b76;--verde:#22a06b;--ambar:#e8a33d;--linha:#f0dde2;--sombra:0 4px 18px rgba(91,33,64,.09)}
@@ -93,6 +101,21 @@
   .login .btn{width:100%;margin-top:1rem}
   .login .atalhos-conta{display:grid;gap:.5rem;margin-top:1rem}
   .login .nota{font-size:.78rem;color:var(--suave);margin-top:1rem;line-height:1.45}
+
+  /* ===== PWA v14: popup de instalação + ajuda ===== */
+  .pwa-pop{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;width:min(94vw,640px);background:#fff;border:1px solid var(--linha);border-radius:18px;box-shadow:0 12px 34px rgba(91,33,64,.28);padding:.85rem;display:flex;gap:.7rem;align-items:center;z-index:80}
+  .pwa-pop img{width:52px;height:52px;border-radius:14px;flex:none}
+  .pwa-pop .pwa-txt{flex:1}.pwa-pop .pwa-txt b{display:block;color:var(--vinho);font-size:.95rem}
+  .pwa-pop .pwa-txt small{color:var(--suave);font-size:.78rem;line-height:1.35;display:block}
+  .pwa-pop .pwa-btns{display:flex;flex-direction:column;gap:.4rem}
+  .pwa-pop .pwa-btns .btn{padding:.5rem .9rem;font-size:.82rem;white-space:nowrap}
+  @media(max-width:520px){.pwa-pop{flex-wrap:wrap}.pwa-pop .pwa-btns{flex-direction:row;width:100%}.pwa-pop .pwa-btns .btn{flex:1}}
+  .pwa-fundo{position:fixed;inset:0;background:rgba(59,20,38,.55);z-index:90;display:flex;align-items:center;justify-content:center;padding:1rem}
+  .pwa-caixa{background:var(--creme);border-radius:18px;padding:1.3rem;max-width:380px;width:100%;max-height:calc(100dvh - 2rem);overflow-y:auto;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+  .pwa-caixa h2{color:var(--vinho);font-size:1.05rem;margin-bottom:.5rem}
+  .pwa-caixa h3{color:var(--cor-esc);font-size:.92rem;margin:.7rem 0 .25rem}
+  .pwa-caixa p{font-size:.88rem;margin-bottom:.4rem}
+  .pwa-caixa .btn{width:100%;margin-top:.6rem}
 </style>
 </head>
 <body>
@@ -143,6 +166,11 @@
         <div><b>0</b><span>membros</span></div>
         <div><b>—</b><span>aguardando ativação</span></div>
       </div>
+    </div>
+    <div class="card" id="cardInstalar" style="display:none">
+      <h2>📱 Sua lojinha como aplicativo</h2>
+      <p class="sub">Instale o GarimpoBot na tela inicial do seu celular: ele abre direto, em tela cheia, sem precisar abrir o navegador.</p>
+      <button class="btn" id="btnInstalarCard">Instalar aplicativo</button>
     </div>
     <div class="kpis">
       <div class="kpi"><span>Ofertas postadas hoje</span><b>0</b><span class="delta">de 0 garimpadas</span></div>
@@ -614,6 +642,70 @@ $('#btnAdmInserir').addEventListener('click',async()=>{
   if(nome.length<2||!email.includes('@')){toast('Preenche nome e e-mail de quem você quer inserir');return}
   try{const d=await api('admin-inserir',{token:TOKEN,nome,email});if(d.ok){$('#admNome').value='';$('#admEmail').value='';toast('Inserido e já aprovado: '+email+' — a pessoa cria a senha no Primeiro acesso');carregarAdmin()}else toast(d.erro||'Não inseriu')}catch(e){toast('Sem conexão agora')}
 });
+</script>
+
+<!-- ===== PWA v14: popup de instalação (só aparece depois do login) + ajuda ===== -->
+<div class="pwa-pop" id="pwaPop" style="display:none">
+  <img src="/icon-192.png" alt="GarimpoBot">
+  <div class="pwa-txt"><b>Instale o GarimpoBot 📱</b><small>Tenha sua lojinha na tela inicial do celular, abrindo direto como aplicativo.</small></div>
+  <div class="pwa-btns"><button class="btn" id="btnPwaInstalar">Instalar</button><button class="btn claro" id="btnPwaDepois">Agora não</button></div>
+</div>
+<div class="pwa-fundo" id="pwaAjuda" style="display:none">
+  <div class="pwa-caixa">
+    <h2>Como instalar o aplicativo</h2>
+    <h3>No Android (Chrome)</h3>
+    <p>Toque nos <b>três pontinhos ⋮</b> no canto do navegador e depois em <b>“Instalar app”</b> ou <b>“Adicionar à tela inicial”</b>. Pronto: o GarimpoBot vira um ícone na sua tela.</p>
+    <h3>No iPhone (Safari)</h3>
+    <p>Toque no botão <b>Compartilhar</b> (o quadradinho com a seta pra cima) e depois em <b>“Adicionar à Tela de Início”</b>.</p>
+    <button class="btn" id="btnPwaFechar">Entendi</button>
+  </div>
+</div>
+<script>
+/* ===== GarimpoBot v14 — PWA: service worker + instalação ===== */
+(function(){
+  var q=function(s){return document.querySelector(s)};
+  if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}
+  var promptGuardado=null;
+  function instalado(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true}
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();promptGuardado=e;atualizarPwa()});
+  window.addEventListener('appinstalled',function(){promptGuardado=null;fecharPopup();atualizarPwa();if(typeof toast==='function')toast('GarimpoBot instalado ✓ — ele tá na sua tela inicial')});
+  function atualizarPwa(){
+    var card=q('#cardInstalar');if(card)card.style.display=instalado()?'none':'';
+    if(instalado())fecharPopup();
+  }
+  function talvezPopup(){
+    if(instalado())return;
+    try{if(sessionStorage.getItem('gb_pwa_depois'))return}catch(e){}
+    setTimeout(function(){var p=q('#pwaPop');if(p&&!instalado()&&q('#telaLogin').style.display==='none')p.style.display='flex'},1400);
+  }
+  function fecharPopup(){var p=q('#pwaPop');if(p)p.style.display='none'}
+  function abrirAjuda(){fecharPopup();q('#pwaAjuda').style.display='flex'}
+  function fecharAjuda(){q('#pwaAjuda').style.display='none'}
+  async function instalar(){
+    if(promptGuardado){
+      promptGuardado.prompt();
+      try{var r=await promptGuardado.userChoice;if(r&&r.outcome==='accepted')fecharPopup()}catch(e){}
+      promptGuardado=null;
+    }else{abrirAjuda()}
+  }
+  var b1=q('#btnPwaInstalar');if(b1)b1.addEventListener('click',instalar);
+  var b2=q('#btnInstalarCard');if(b2)b2.addEventListener('click',instalar);
+  var b3=q('#btnPwaDepois');if(b3)b3.addEventListener('click',function(){try{sessionStorage.setItem('gb_pwa_depois','1')}catch(e){}fecharPopup()});
+  var b4=q('#btnPwaFechar');if(b4)b4.addEventListener('click',fecharAjuda);
+  var f=q('#pwaAjuda');if(f)f.addEventListener('click',function(e){if(e.target===f)fecharAjuda()});
+  /* O popup só existe depois do login: ele é chamado ao fim de aplicar(),
+     que é a porta de entrada do painel (login e sessão restaurada). */
+  if(typeof aplicar==='function'){
+    var aplicarOriginal=aplicar;
+    aplicar=function(d){
+      aplicarOriginal(d);
+      try{var m=document.querySelector('meta[name="theme-color"]');if(m&&typeof COR_ATUAL!=='undefined')m.setAttribute('content',COR_ATUAL)}catch(e){}
+      atualizarPwa();
+      talvezPopup();
+    };
+  }
+  atualizarPwa();
+})();
 </script>
 </body>
 </html>
