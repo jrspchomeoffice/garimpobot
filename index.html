@@ -375,11 +375,7 @@
         <div class="cor" data-cor="#f0762b" data-esc="#c2571a" style="background:#f0762b"></div>
       </div>
       <label class="rot">O que você quer vender</label>
-      <div class="chips" id="catsPerfil" style="margin:.3rem 0 .2rem">
-        <button class="chip">Casa e Lar</button><button class="chip">Cozinha</button><button class="chip">Saúde e Suplementos</button>
-        <button class="chip">Beleza e Cuidado</button><button class="chip">Limpeza</button><button class="chip">Bebê e Infantil</button>
-        <button class="chip">Moda Feminina</button><button class="chip">Mercado</button><button class="chip">Pets</button><button class="chip">Eletrônicos</button>
-      </div>
+      <div class="chips" id="catsPerfil" style="margin:.3rem 0 .2rem"></div>
     </div>
     <div class="card">
       <h2>Seus códigos de afiliada</h2>
@@ -608,8 +604,9 @@ async function carregarGarimpos(){
 $$('#filtroGarimpo .chip').forEach(c=>c.addEventListener('click',()=>{$$('#filtroGarimpo .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');renderG(c.dataset.f)}));
 /* Perfil */
 function iniciais(nome){return nome.trim().split(/\s+/).filter(Boolean).slice(-2).map(p=>p[0]).join('').toUpperCase().slice(0,2)||'CG'}
-$('#inpNome').addEventListener('input',e=>{const n=e.target.value||'Sua lojinha';$('#nomeTopo').textContent=n;const ini=iniciais(n);$('#iniciais').textContent=ini;$('#iniciaisPerfil').textContent=ini});
-$('#inpFoto').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);$('#logoTopo').innerHTML='<img src="'+url+'">';$('#logoPerfil').innerHTML='<img src="'+url+'">';toast('Foto aplicada na lojinha')});
+$('#inpNome').addEventListener('input',e=>{const n=e.target.value||'Sua lojinha';$('#nomeTopo').textContent=n;const ini=iniciais(n);$('#iniciais').textContent=ini;const ip=$('#iniciaisPerfil');if(ip)ip.textContent=ini});
+var FOTO_NOVA=null;
+$('#inpFoto').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=()=>{const cv=document.createElement('canvas');const es=Math.min(1,256/Math.max(img.width,img.height));cv.width=Math.max(1,Math.round(img.width*es));cv.height=Math.max(1,Math.round(img.height*es));cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);FOTO_NOVA=cv.toDataURL('image/jpeg',0.85);$('#logoTopo').innerHTML='<img src="'+FOTO_NOVA+'">';$('#logoPerfil').innerHTML='<img src="'+FOTO_NOVA+'">';toast('Foto pronta — ela salva junto com o perfil')};img.src=URL.createObjectURL(f)});
 $$('#cores .cor').forEach(c=>c.addEventListener('click',()=>{$$('#cores .cor').forEach(x=>x.classList.remove('on'));c.classList.add('on');document.documentElement.style.setProperty('--cor',c.dataset.cor);document.documentElement.style.setProperty('--cor-esc',c.dataset.esc);COR_ATUAL=c.dataset.cor;toast('Cor da marca aplicada')}));
 $$('#catsPerfil .chip').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on')));
 /* Dashboard: saudação e data de verdade */
@@ -667,10 +664,16 @@ function aplicar(d){
     $$('#cores .cor').forEach(c=>c.classList.toggle('on',c.dataset.cor.toLowerCase()===COR_ATUAL.toLowerCase()));
     document.title=L.nome_loja+' — GarimpoBot';
     $('#nomeTopo').textContent=L.nome_loja;
-    const ini=iniciais(L.nome_loja);$('#iniciais').textContent=ini;$('#iniciaisPerfil').textContent=ini;
+    const ini=iniciais(L.nome_loja);$('#iniciais').textContent=ini;
+    if(L.foto){$('#logoPerfil').innerHTML='<img src="'+L.foto+'">';const lt2=$('#logoTopo');if(lt2)lt2.innerHTML='<img src="'+L.foto+'">'}
+    else{$('#logoPerfil').innerHTML='<span id="iniciaisPerfil">'+ini+'</span>'}
     $('#inpNome').value=L.nome_loja;$('#inpFrase').value=L.bio||'';
     $('#inpInstagram').value=L.instagram||'';
-    $$('#catsPerfil .chip').forEach(ch=>ch.classList.toggle('on',(L.categorias||[]).includes(ch.textContent.trim())));
+    const catEl=$('#catsPerfil');
+    if(catEl&&Array.isArray(d.catalogo_categorias)){
+      catEl.innerHTML=d.catalogo_categorias.map(n=>'<button class="chip'+((L.categorias||[]).includes(n)?' on':'')+'">'+escHtml(n)+'</button>').join('');
+      $$('#catsPerfil .chip').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on')));
+    }
     const cg=L.codigos||{};
     $('#codShopee').value=cg['shopee:api_app_id']||'';$('#codML').value=cg['mercado_livre:link_base']||'';$('#codAmazon').value=cg['amazon:tag']||'';
     const rg=L.regras||{};
@@ -706,8 +709,9 @@ $('#btnSalvar').addEventListener('click',async()=>{
     nome_loja:$('#inpNome').value,frase:$('#inpFrase').value,cor_hex:COR_ATUAL,instagram:$('#inpInstagram').value,
     categorias:$$('#catsPerfil .chip.on').map(c=>c.textContent.trim()),
     codigos:{shopee:$('#codShopee').value,mercadolivre:$('#codML').value,amazon:$('#codAmazon').value}};
+  if(FOTO_NOVA)payload.foto=FOTO_NOVA;
   if(!VENDO)payload.nome_pessoa=$('#inpNomePessoa').value;
-  try{const d=await api('salvar-perfil',payload);if(d.ok){aplicar(d);toast('Perfil salvo de verdade — tá no banco ✓')}else toast(d.erro||'Não salvou')}catch(e){toast('Sem conexão agora — tenta de novo')}
+  try{const d=await api('salvar-perfil',payload);if(d.ok){FOTO_NOVA=null;aplicar(d);toast('Perfil salvo de verdade — tá no banco ✓')}else toast(d.erro||'Não salvou')}catch(e){toast('Sem conexão agora — tenta de novo')}
 });
 (async()=>{if(!TOKEN)return;try{const d=await api('eu',{token:TOKEN});if(d.ok)aplicar(d);else{localStorage.removeItem('gb_token');TOKEN='';if(d.codigo==='revogado'||d.codigo==='pendente')mostrarPendente(d.erro)}}catch(e){}})();
 
