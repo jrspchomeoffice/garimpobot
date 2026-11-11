@@ -846,16 +846,17 @@ $('#btnAdmInserir').addEventListener('click',async()=>{
   var q=function(s){return document.querySelector(s)};
   if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}
   var promptGuardado=null;
-  function instalado(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true}
+  function instalado(){try{if(localStorage.getItem('gb_instalado')==='1')return true}catch(e){}return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true}
+  function marcarInstalado(){try{localStorage.setItem('gb_instalado','1')}catch(e){}}
   window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();promptGuardado=e;atualizarPwa()});
-  window.addEventListener('appinstalled',function(){promptGuardado=null;fecharPopup();atualizarPwa();if(typeof toast==='function')toast('GarimpoBot instalado ✓ — ele tá na sua tela inicial')});
+  window.addEventListener('appinstalled',function(){marcarInstalado();promptGuardado=null;fecharPopup();atualizarPwa();if(typeof toast==='function')toast('GarimpoBot instalado ✓ — ele tá na sua tela inicial')});
   function atualizarPwa(){
     var card=q('#cardInstalar');if(card)card.style.display=instalado()?'none':'';
     if(instalado())fecharPopup();
   }
   function talvezPopup(){
     if(instalado())return;
-    try{if(sessionStorage.getItem('gb_pwa_depois'))return}catch(e){}
+    try{var dz=+localStorage.getItem('gb_pwa_depois_ts')||0;if(Date.now()-dz<7*24*3600*1000)return}catch(e){}
     setTimeout(function(){var p=q('#pwaPop');if(p&&!instalado()&&q('#telaLogin').style.display==='none')p.style.display='flex'},1400);
   }
   function fecharPopup(){var p=q('#pwaPop');if(p)p.style.display='none'}
@@ -864,13 +865,13 @@ $('#btnAdmInserir').addEventListener('click',async()=>{
   async function instalar(){
     if(promptGuardado){
       promptGuardado.prompt();
-      try{var r=await promptGuardado.userChoice;if(r&&r.outcome==='accepted')fecharPopup()}catch(e){}
+      try{var r=await promptGuardado.userChoice;if(r&&r.outcome==='accepted'){marcarInstalado();fecharPopup();atualizarPwa()}}catch(e){}
       promptGuardado=null;
     }else{abrirAjuda()}
   }
   var b1=q('#btnPwaInstalar');if(b1)b1.addEventListener('click',instalar);
   var b2=q('#btnInstalarCard');if(b2)b2.addEventListener('click',instalar);
-  var b3=q('#btnPwaDepois');if(b3)b3.addEventListener('click',function(){try{sessionStorage.setItem('gb_pwa_depois','1')}catch(e){}fecharPopup()});
+  var b3=q('#btnPwaDepois');if(b3)b3.addEventListener('click',function(){try{localStorage.setItem('gb_pwa_depois_ts',String(Date.now()))}catch(e){}fecharPopup()});
   var b4=q('#btnPwaFechar');if(b4)b4.addEventListener('click',fecharAjuda);
   var f=q('#pwaAjuda');if(f)f.addEventListener('click',function(e){if(e.target===f)fecharAjuda()});
   /* O popup só existe depois do login: ele é chamado ao fim de aplicar(),
