@@ -24,6 +24,7 @@
   header small{color:var(--suave)}
   .dot{width:10px;height:10px;border-radius:50%;background:var(--verde);display:inline-block;margin-right:.3rem}
   .dot.off{background:#d33}
+  .dot.warn{background:#e6a817}
   .tela{display:none;padding-top:.6rem}
   .tela.on{display:block}
   .card{background:#fff;border:1px solid var(--linha);border-radius:18px;padding:1rem;margin-bottom:.9rem;box-shadow:var(--sombra)}
@@ -247,7 +248,7 @@
   <!-- ============ ABA ROBÔ ============ -->
   <section class="tela" id="tela-robo">
     <div class="card">
-      <div class="linha" style="border:none;padding-top:0"><div class="cresce"><b style="font-size:1.02rem;color:var(--vinho)">Robô aguardando ativação</b><small id="txtRobo">Ele liga quando o grupo, o chip e seus códigos estiverem conectados</small></div><label class="sw"><input type="checkbox" id="swRobo"><i></i></label></div>
+      <div class="linha" style="border:none;padding-top:0"><div class="cresce"><b style="font-size:1.02rem;color:var(--vinho)" id="titRobo">Robô aguardando ativação</b><small id="txtRobo">Ele liga quando o grupo, o chip e seus códigos estiverem conectados</small></div><label class="sw"><input type="checkbox" id="swRobo"><i></i></label></div>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap">
         <button class="btn" id="btnPausar" disabled>Pausar agora</button>
         <button class="btn claro" id="btnVoltar" disabled>Voltar a postar</button>
@@ -255,20 +256,20 @@
     </div>
     <div class="card">
       <h2>De quais lojas ele garimpa</h2>
-      <div class="linha"><div class="cresce"><b>Shopee</b><small>Via API oficial da sua conta</small></div><label class="sw"><input type="checkbox" class="swLoja" checked><i></i></label></div>
-      <div class="linha"><div class="cresce"><b>Mercado Livre</b><small>Mais vendidos e ofertas do dia</small></div><label class="sw"><input type="checkbox" class="swLoja" checked><i></i></label></div>
-      <div class="linha"><div class="cresce"><b>Amazon</b><small>Ofertas do dia</small></div><label class="sw"><input type="checkbox" class="swLoja" checked><i></i></label></div>
-      <div class="linha"><div class="cresce"><b>AliExpress</b><small>Produtos em alta</small></div><label class="sw"><input type="checkbox" class="swLoja"><i></i></label></div>
-      <div class="linha"><div class="cresce"><b>Grupos e canais vigiados</b><small>Espelhamento: ele copia a oferta e troca o link pelo seu</small></div><label class="sw"><input type="checkbox" class="swLoja" checked><i></i></label></div>
+      <div class="linha"><div class="cresce"><b>Shopee</b><small>Via API oficial da sua conta</small></div><label class="sw"><input type="checkbox" class="swLoja" data-loja="shopee" checked><i></i></label></div>
+      <div class="linha"><div class="cresce"><b>Mercado Livre</b><small>Mais vendidos e ofertas do dia</small></div><label class="sw"><input type="checkbox" class="swLoja" data-loja="mercado_livre" checked><i></i></label></div>
+      <div class="linha"><div class="cresce"><b>Amazon</b><small>Ofertas do dia</small></div><label class="sw"><input type="checkbox" class="swLoja" data-loja="amazon" checked><i></i></label></div>
+      <div class="linha"><div class="cresce"><b>AliExpress</b><small>Produtos em alta</small></div><label class="sw"><input type="checkbox" class="swLoja" data-loja="aliexpress"><i></i></label></div>
+      <div class="linha"><div class="cresce"><b>Grupos e canais vigiados</b><small>Espelhamento: ele copia a oferta e troca o link pelo seu</small></div><span class="pill ok">SEMPRE ATIVO</span></div>
     </div>
     <div class="card">
       <h2>Regras do garimpo</h2>
       <p class="sub" style="margin-top:.4rem">Ofertas por dia: <span class="valor" id="vPosts">10</span></p>
       <input type="range" id="rPosts" min="4" max="30" value="10">
       <p class="sub" style="margin-top:.7rem">Desconto mínimo pra aprovar: <span class="valor" id="vDesc">20%</span></p>
-      <input type="range" id="rDesc" min="10" max="60" value="20">
+      <input type="range" id="rDesc" min="0" max="60" value="20">
       <p class="sub" style="margin-top:.7rem">Avaliação mínima do produto: <span class="valor" id="vNota">4.0</span></p>
-      <input type="range" id="rNota" min="3.5" max="5" step="0.1" value="4.0">
+      <input type="range" id="rNota" min="0" max="5" step="0.1" value="4.0">
       <p class="sub" style="margin-top:.8rem">Horários de postagem</p>
       <div class="chips" id="horarios">
         <button class="chip on">07:30</button><button class="chip">10:00</button><button class="chip on">12:00</button>
@@ -513,24 +514,40 @@ $('#btnGerarCodigo').addEventListener('click',async()=>{
 $('#btnDesconectar').addEventListener('click',async()=>{
   try{const d=await api('desconectar',dadosCx());if(d.ok){toast('Número desconectado');$('#codigoPareamento').textContent='–––– ––––';atualizarCx()}else toast(d.erro||'Não desconectou')}catch(e){toast('Sem conexão agora')}
 });
-$('#btnCopiar').addEventListener('click',()=>{if(navigator.clipboard)navigator.clipboard.writeText('https://chat.whatsapp.com/cantinhodagil').catch(()=>{});toast('Link de convite copiado')});
-/* Robô liga/desliga + pausar */
-const sw=$('#swRobo');
-function estadoRobo(){
-  const on=sw.checked;
-  $('#dotRobo').className='dot'+(on?'':' off');
-  $('#statusRobo').textContent=on?'Robô trabalhando':'Robô desligado';
-  $('#txtRobo').textContent=on?'Garimpando e postando sozinho':'Nada será garimpado nem postado';
-  $('#btnPausar').disabled=!on;$('#btnVoltar').disabled=true;
+/* Robô DE VERDADE — tudo salva em tenant_rules via salvar-regras */
+let REGRAS=null;
+async function salvarRegras(parcial,silencioso){
+  try{const d=await api('salvar-regras',dadosCx(parcial));
+    if(d.ok){REGRAS=d.regras;if(!silencioso)toast('Salvo de verdade — o robô já obedece ✓');atualizarStatusRobo();return true}
+    toast(d.erro||'Não salvou');return false
+  }catch(e){toast('Sem conexão agora');return false}
 }
-sw.addEventListener('change',()=>{estadoRobo();toast(sw.checked?'Robô ligado':'Robô desligado — tudo parado')});
-$('#btnPausar').addEventListener('click',()=>{$('#statusRobo').textContent='Robô pausado por você';$('#dotRobo').className='dot off';$('#btnPausar').disabled=true;$('#btnVoltar').disabled=false;toast('Pausado — o robô não posta até você voltar')});
-$('#btnVoltar').addEventListener('click',()=>{estadoRobo();toast('Robô de volta ao trabalho')});
-$$('.swLoja').forEach(s=>s.addEventListener('change',()=>toast('Fonte '+(s.checked?'ligada':'desligada')+' — o robô já obedece')));
-/* Sliders */
-const liga=(r,v,f)=>{const el=$(r);el.addEventListener('input',()=>$(v).textContent=f(el.value))};
+async function atualizarStatusRobo(){
+  const tit=$('#titRobo'),txt=$('#txtRobo'),st=$('#statusRobo'),dot=$('#dotRobo'),sw=$('#swRobo');
+  if(!tit||!REGRAS)return;
+  const ligado=!!REGRAS.robo_ligado;
+  if(sw)sw.checked=ligado;
+  $('#btnPausar').disabled=!ligado;$('#btnVoltar').disabled=ligado;
+  if(!ligado){tit.textContent='Robô desligado';st.textContent='Robô desligado';dot.className='dot off';txt.textContent='Liga a chavinha pra ele garimpar e postar sozinho';return}
+  let conectado=false,gruposAtivos=0;
+  try{const cx=await api('conexao-status',dadosCx());conectado=!!(cx&&cx.conectado)}catch(e){}
+  try{const gr=await api('grupos-detectados',dadosCx());if(gr&&gr.conectado)gruposAtivos=(gr.grupos||[]).filter(g=>g.ativo).length}catch(e){}
+  if(conectado&&gruposAtivos>0){tit.textContent='Robô ativo e postando';st.textContent='Robô ativo';dot.className='dot';txt.textContent='Garimpando nas fontes e postando no seu grupo'}
+  else if(!conectado){tit.textContent='Robô ligado — aguardando o chip';st.textContent='Robô aguardando o chip';dot.className='dot warn';txt.textContent='A chavinha já está ligada — falta o WhatsApp do chip conectar (aba Conexão)'}
+  else{tit.textContent='Robô ligado — aguardando um grupo';st.textContent='Robô aguardando um grupo';dot.className='dot warn';txt.textContent='Chip conectado — falta ligar o robô num grupo (aba Grupos)'}
+}
+$('#swRobo').addEventListener('change',e=>salvarRegras({robo_ligado:e.target.checked}));
+$('#btnPausar').addEventListener('click',()=>salvarRegras({robo_ligado:false}));
+$('#btnVoltar').addEventListener('click',()=>salvarRegras({robo_ligado:true}));
+function lojasMarcadas(){return $$('.swLoja[data-loja]').filter(s=>s.checked).map(s=>s.dataset.loja)}
+$$('.swLoja[data-loja]').forEach(s=>s.addEventListener('change',()=>salvarRegras({lojas_ativas:lojasMarcadas()})));
+const liga=(r,v,f)=>{const el=$(r);if(el)el.addEventListener('input',()=>$(v).textContent=f(el.value))};
 liga('#rPosts','#vPosts',x=>x);liga('#rDesc','#vDesc',x=>x+'%');liga('#rNota','#vNota',x=>(+x).toFixed(1));
-$$('#horarios .chip').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on')));
+function ligaSalvar(sel,campo,conv){const el=$(sel);if(!el)return;el.addEventListener('change',()=>{const p={};p[campo]=conv(el.value);salvarRegras(p)})}
+ligaSalvar('#rPosts','posts_por_dia',x=>parseInt(x));
+ligaSalvar('#rDesc','desconto_min_pct',x=>parseFloat(x));
+ligaSalvar('#rNota','avaliacao_minima',x=>parseFloat(x));
+$$('#horarios .chip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');salvarRegras({horarios:$$('#horarios .chip.on').map(x=>x.textContent.trim())},true).then(ok=>{if(ok)toast('Horários salvos ✓')})}));
 /* Garimpos */
 const G=[];
 const fmt=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -610,10 +627,14 @@ function aplicar(d){
     const cg=L.codigos||{};
     $('#codShopee').value=cg['shopee:api_app_id']||'';$('#codML').value=cg['mercado_livre:link_base']||'';$('#codAmazon').value=cg['amazon:tag']||'';
     const rg=L.regras||{};
-    if(rg.posts_por_dia){$('#rPosts').value=rg.posts_por_dia;$('#vPosts').textContent=rg.posts_por_dia}
-    if(rg.desconto_min_pct){$('#rDesc').value=rg.desconto_min_pct;$('#vDesc').textContent=rg.desconto_min_pct+'%'}
-    if(rg.avaliacao_minima){$('#rNota').value=rg.avaliacao_minima;$('#vNota').textContent=(+rg.avaliacao_minima).toFixed(1)}
-    if(Array.isArray(rg.horarios_ancora)){const hs=rg.horarios_ancora.map(h=>String(h).slice(0,5));$$('#horarios .chip').forEach(c=>c.classList.toggle('on',hs.includes(c.textContent.trim())))}
+    if(rg.posts_por_dia!=null){$('#rPosts').value=rg.posts_por_dia;$('#vPosts').textContent=rg.posts_por_dia}
+    if(rg.desconto_min_pct!=null){$('#rDesc').value=rg.desconto_min_pct;$('#vDesc').textContent=rg.desconto_min_pct+'%'}
+    if(rg.avaliacao_minima!=null){$('#rNota').value=rg.avaliacao_minima;$('#vNota').textContent=(+rg.avaliacao_minima).toFixed(1)}
+    if(Array.isArray(rg.horarios)){const hs=rg.horarios.map(h=>String(h).slice(0,5));$$('#horarios .chip').forEach(c=>c.classList.toggle('on',hs.includes(c.textContent.trim())))}
+    REGRAS=rg;
+    const swR=$('#swRobo');if(swR)swR.checked=!!rg.robo_ligado;
+    $$('.swLoja[data-loja]').forEach(s=>{s.checked=(rg.lojas_ativas||[]).includes(s.dataset.loja)});
+    if(typeof atualizarStatusRobo==='function')atualizarStatusRobo();
   }
   if(!L&&u.admin){$('#nomeTopo').textContent='GarimpoBot — Admin'}
   const minhaLojinha=!u.admin;
