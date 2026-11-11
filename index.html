@@ -715,7 +715,7 @@ function aplicar(d){
       PRIO=L.prioridades||{};pintarPrio();
     }
     const cg=L.codigos||{};
-    $('#codShopee').value=cg['shopee:api_app_id']||'';$('#codML').value=cg['mercado_livre:link_base']||'';$('#codAmazon').value=cg['amazon:tag']||'';
+    $('#codShopee').value=cg['shopee:api_app_id']||cg['shopee:link_base']||'';$('#codML').value=cg['mercado_livre:link_base']||'';$('#codAmazon').value=cg['amazon:tag']||'';
     const rg=L.regras||{};
     if(rg.posts_por_dia!=null){$('#rPosts').value=rg.posts_por_dia;$('#vPosts').textContent=rg.posts_por_dia}
     if(rg.intervalo_min_min!=null)$$('#ritmo .chip').forEach(c=>c.classList.toggle('on',parseInt(c.dataset.min)===parseInt(rg.intervalo_min_min)));
