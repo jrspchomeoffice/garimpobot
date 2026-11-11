@@ -267,9 +267,16 @@
       <div class="linha"><div class="cresce"><b>Grupos e canais vigiados</b><small>Espelhamento: ele copia a oferta e troca o link pelo seu</small></div><span class="pill ok">SEMPRE ATIVO</span></div>
     </div>
     <div class="card">
+      <h2>Ritmo de postagem</h2>
+      <p class="sub">De quanto em quanto tempo sai uma oferta nova no grupo, enquanto tiver oferta esperando na fila. O teto de posts por dia (nas regras abaixo) continua valendo.</p>
+      <div class="chips" id="ritmo">
+        <button class="chip" data-min="5">5 min</button><button class="chip" data-min="10">10 min</button><button class="chip" data-min="15">15 min</button><button class="chip" data-min="20">20 min</button><button class="chip" data-min="30">30 min</button><button class="chip" data-min="60">1 hora</button>
+      </div>
+    </div>
+    <div class="card">
       <h2>Regras do garimpo</h2>
       <p class="sub" style="margin-top:.4rem">Ofertas por dia: <span class="valor" id="vPosts">10</span></p>
-      <input type="range" id="rPosts" min="4" max="30" value="10">
+      <input type="range" id="rPosts" min="4" max="50" value="10">
       <p class="sub" style="margin-top:.7rem">Desconto mínimo pra aprovar: <span class="valor" id="vDesc">20%</span></p>
       <input type="range" id="rDesc" min="0" max="60" value="20">
       <p class="sub" style="margin-top:.7rem">Avaliação mínima do produto: <span class="valor" id="vNota">4.0</span></p>
@@ -539,6 +546,7 @@ async function atualizarStatusRobo(){
   else{tit.textContent='Robô ligado — aguardando um grupo';st.textContent='Robô aguardando um grupo';dot.className='dot warn';txt.textContent='Chip conectado — falta ligar o robô num grupo (aba Grupos)'}
 }
 $('#swRobo').addEventListener('change',e=>salvarRegras({robo_ligado:e.target.checked}));
+$$('#ritmo .chip').forEach(c=>c.addEventListener('click',()=>{$$('#ritmo .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');salvarRegras({intervalo_min_min:parseInt(c.dataset.min)})}));
 $('#btnPausar').addEventListener('click',()=>salvarRegras({robo_ligado:false}));
 $('#btnVoltar').addEventListener('click',()=>salvarRegras({robo_ligado:true}));
 function lojasMarcadas(){return $$('.swLoja[data-loja]').filter(s=>s.checked).map(s=>s.dataset.loja)}
@@ -683,6 +691,7 @@ function aplicar(d){
     $('#codShopee').value=cg['shopee:api_app_id']||'';$('#codML').value=cg['mercado_livre:link_base']||'';$('#codAmazon').value=cg['amazon:tag']||'';
     const rg=L.regras||{};
     if(rg.posts_por_dia!=null){$('#rPosts').value=rg.posts_por_dia;$('#vPosts').textContent=rg.posts_por_dia}
+    if(rg.intervalo_min_min!=null)$$('#ritmo .chip').forEach(c=>c.classList.toggle('on',parseInt(c.dataset.min)===parseInt(rg.intervalo_min_min)));
     if(rg.desconto_min_pct!=null){$('#rDesc').value=rg.desconto_min_pct;$('#vDesc').textContent=rg.desconto_min_pct+'%'}
     if(rg.avaliacao_minima!=null){$('#rNota').value=rg.avaliacao_minima;$('#vNota').textContent=(+rg.avaliacao_minima).toFixed(1)}
     if(Array.isArray(rg.horarios)){const hs=rg.horarios.map(h=>String(h).slice(0,5));$$('#horarios .chip').forEach(c=>c.classList.toggle('on',hs.includes(c.textContent.trim())))}
