@@ -553,7 +553,7 @@ $$('#horarios .chip').forEach(c=>c.addEventListener('click',()=>{c.classList.tog
 let G=[];
 const fmt=v=>v==null?'':v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const LOJAS={shopee:['Shopee','#ee4d2d','SH'],mercado_livre:['Mercado Livre','#b7a100','ML'],amazon:['Amazon','#ff9900','AM'],aliexpress:['AliExpress','#e62e04','AL']};
-const MOTIVOS={sem_conversao:'não deu pra montar com o seu link de afiliada',conversor_api_pendente:'a conversão dessa loja ainda não está ligada',conversor_sessao_pendente:'a conversão dessa loja ainda não está ligada',desconto_baixo:'desconto abaixo do mínimo da sua regra',nota_baixa:'nota abaixo do corte da sua regra',avaliacao_baixa:'avaliação do produto abaixo da sua regra',fora_do_nicho:'fora das categorias da sua lojinha',fora_loja:'essa loja está desligada nas suas regras',sem_produto:'não deu pra identificar o produto ou o preço',sem_comissao:'produto sem comissão',duplicada:'a mesma oferta já entrou hoje',em_quarentena:'fonte em observação',preco_subiu:'o preço subiu antes de postar'};
+const MOTIVOS={sem_conversao:'não deu pra montar com o seu link de afiliada',conversor_api_pendente:'a conversão dessa loja ainda não está ligada',conversor_sessao_pendente:'a conversão dessa loja ainda não está ligada',desconto_baixo:'desconto abaixo do mínimo da sua regra',nota_baixa:'nota abaixo do corte da sua regra',avaliacao_baixa:'avaliação do produto abaixo da sua regra',fora_do_nicho:'fora das categorias da sua lojinha',fora_loja:'essa loja está desligada nas suas regras',sem_produto:'não deu pra identificar o produto ou o preço',sem_comissao:'produto sem comissão',duplicada:'a mesma oferta já entrou hoje',em_quarentena:'fonte em observação',preco_subiu:'o preço subiu antes de postar',preco_suspeito:'preço estranho demais — o robô segurou por segurança'};
 function stDe(o){return o.estado==='postada'?'postada':(o.estado==='na_fila'||o.estado==='aprovada'||o.estado==='descoberta')?'fila':'descartada'}
 function infoDe(o){
   if(o.estado==='postada')return 'postada às '+horaCurta(o.postada_em||o.criada_em);
@@ -582,7 +582,7 @@ function renderCurva(){
   box.style.display='';
   $('#gCurvaLista').innerHTML=lista.map(linhaOferta).join('');
 }
-const ERROS_POST={sem_conversao:'essa oferta ainda não dá pra montar com o seu link dessa loja',conversor_api_pendente:'a conversão dessa loja ainda não está ligada',conversor_sessao_pendente:'a conversão dessa loja ainda não está ligada',ja_postada:'essa oferta já foi postada',sem_grupo:'nenhum grupo ligado — liga um na aba Grupos',sem_preco:'essa oferta está sem preço agora',falha_envio:'não consegui enviar agora — tenta de novo',oferta_nao_encontrada:'oferta não encontrada'};
+const ERROS_POST={sem_conversao:'essa oferta ainda não dá pra montar com o seu link dessa loja',conversor_api_pendente:'a conversão dessa loja ainda não está ligada',conversor_sessao_pendente:'a conversão dessa loja ainda não está ligada',ja_postada:'essa oferta já foi postada',sem_grupo:'nenhum grupo ligado — liga um na aba Grupos',sem_preco:'essa oferta está sem preço agora',falha_envio:'não consegui enviar agora — tenta de novo',preco_suspeito:'esse preço parece errado — o robô segurou por segurança',oferta_nao_encontrada:'oferta não encontrada'};
 async function postarAgora(id,btn){
   if(btn){btn.disabled=true;btn.textContent='Postando…'}
   try{const d=await api('postar-agora',dadosCx({oferta_id:id}));
