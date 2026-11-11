@@ -53,6 +53,9 @@
   .chips{display:flex;gap:.4rem;flex-wrap:wrap}
   .chip{border:1.5px solid var(--linha);background:#fff;color:var(--suave);border-radius:999px;padding:.32rem .8rem;font-size:.82rem;cursor:pointer;font-weight:600}
   .chip.on{background:var(--cor);border-color:var(--cor);color:#fff}
+  .prio-btns{display:flex;gap:.3rem}
+  .prio-b{width:2rem;height:2rem;border-radius:999px;border:1.5px solid var(--linha);background:#fff;color:var(--suave);font-weight:800;cursor:pointer;font-size:.85rem}
+  .prio-b.on{background:var(--cor);border-color:var(--cor);color:#fff}
   .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
   .num{background:var(--creme);border:1px solid var(--linha);border-radius:14px;padding:.6rem .3rem;text-align:center}
   .num b{display:block;font-size:1.25rem;color:var(--vinho)}.num span{font-size:.66rem;color:var(--suave)}
@@ -286,6 +289,10 @@
         <button class="chip on">07:30</button><button class="chip">10:00</button><button class="chip on">12:00</button>
         <button class="chip on">15:00</button><button class="chip on">18:00</button><button class="chip on">20:30</button><button class="chip">22:00</button>
       </div>
+      <div style="margin-top:.7rem"><b style="font-size:.92rem">Aquecimento do número</b><br><small style="color:var(--suave)">Nos primeiros dias o robô posta bem pouquinho, pro número novo não estranhar o ritmo.</small></div>
+      <div class="chips" id="aquecChips" style="margin:.35rem 0 .3rem">
+        <button class="chip" data-dias="0">Desligado</button><button class="chip" data-dias="7">7 dias</button><button class="chip" data-dias="14">14 dias</button>
+      </div>
       <div class="linha" style="margin-top:.5rem"><div class="cresce"><b>Silêncio da noite</b><small id="silencioTxt">Não posta entre 23h e 6h30</small></div><label class="sw"><input type="checkbox" id="swSilencio"><i></i></label></div>
       <div class="linha"><div class="cresce"><b>Não repetir a mesma oferta</b><small>Mesmo produto só volta se o preço cair de verdade</small></div><span class="pill ok">Sempre ativo</span></div>
       <div class="linha"><div class="cresce"><b>Conferir o preço antes de postar</b><small>Se subiu ou acabou, ele pula a oferta</small></div><span class="pill ok">Sempre ativo</span></div>
@@ -388,6 +395,10 @@
       <p class="sub">Liga e desliga as categorias — o robô só garimpa o que estiver ligado.</p>
       <div class="chips" id="catsPerfil" style="margin:.3rem 0 .2rem"></div>
       <button class="btn" id="btnAplicarCats" style="width:100%;margin-top:.5rem">Aplicar categorias</button>
+      <div style="margin-top:.9rem">
+        <p class="sub" style="margin-bottom:.3rem"><b>Ordem de prioridade</b> — o que o robô posta primeiro: <b>1</b> é o seu forte, posta mais; <b>2</b> fica no meio; <b>3</b> só entra quando sobra. Toque no número pra mudar — salva na hora.</p>
+        <div id="prioLista"></div>
+      </div>
     </div>
     <div class="card">
       <h2>Seus códigos de afiliada</h2>
@@ -401,6 +412,17 @@
       <label class="rot">Seu Instagram</label>
       <input type="text" id="inpInstagram" value="" placeholder="@seuinstagram">
       <button class="btn" id="btnSalvarCodigos" style="width:100%">Salvar códigos</button>
+    </div>
+    <div class="card">
+      <h2>Sua senha</h2>
+      <p class="sub">Pra trocar a senha de entrada do painel.</p>
+      <label class="rot">Senha atual</label>
+      <input type="password" id="senhaAtual" autocomplete="current-password">
+      <label class="rot">Senha nova</label>
+      <input type="password" id="senhaNova" autocomplete="new-password" placeholder="pelo menos 6 caracteres">
+      <label class="rot">Repete a senha nova</label>
+      <input type="password" id="senhaConf" autocomplete="new-password">
+      <button class="btn" id="btnSenha" style="width:100%;margin-top:.6rem">Trocar senha</button>
     </div>
   </section>
 </div>
@@ -534,7 +556,7 @@ async function salvarRegras(parcial,silencioso){
 async function atualizarStatusRobo(){
   const tit=$('#titRobo'),txt=$('#txtRobo'),st=$('#statusRobo'),dot=$('#dotRobo'),sw=$('#swRobo');
   if(!tit||!REGRAS)return;
-  pintarSilencio();
+  pintarSilencio();pintarAquec();
   const ligado=!!REGRAS.robo_ligado;
   if(sw)sw.checked=ligado;
   $('#btnPausar').disabled=!ligado;$('#btnVoltar').disabled=ligado;
@@ -689,7 +711,8 @@ function aplicar(d){
     const catEl=$('#catsPerfil');
     if(catEl&&Array.isArray(d.catalogo_categorias)){
       catEl.innerHTML=d.catalogo_categorias.map(n=>'<button class="chip'+((L.categorias||[]).includes(n)?' on':'')+'">'+escHtml(n)+'</button>').join('');
-      $$('#catsPerfil .chip').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on')));
+      $$('#catsPerfil .chip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');pintarPrio()}));
+      PRIO=L.prioridades||{};pintarPrio();
     }
     const cg=L.codigos||{};
     $('#codShopee').value=cg['shopee:api_app_id']||'';$('#codML').value=cg['mercado_livre:link_base']||'';$('#codAmazon').value=cg['amazon:tag']||'';
@@ -699,7 +722,7 @@ function aplicar(d){
     if(rg.desconto_min_pct!=null){$('#rDesc').value=rg.desconto_min_pct;$('#vDesc').textContent=rg.desconto_min_pct+'%'}
     if(rg.avaliacao_minima!=null){$('#rNota').value=rg.avaliacao_minima;$('#vNota').textContent=(+rg.avaliacao_minima).toFixed(1)}
     if(Array.isArray(rg.horarios)){const hs=rg.horarios.map(h=>String(h).slice(0,5));$$('#horarios .chip').forEach(c=>c.classList.toggle('on',hs.includes(c.textContent.trim())))}
-    REGRAS=rg;pintarSilencio();
+    REGRAS=rg;pintarSilencio();pintarAquec();
     const swR=$('#swRobo');if(swR)swR.checked=!!rg.robo_ligado;
     $$('.swLoja[data-loja]').forEach(s=>{s.checked=(rg.lojas_ativas||[]).includes(s.dataset.loja)});
     if(typeof atualizarStatusRobo==='function')atualizarStatusRobo();
@@ -745,6 +768,23 @@ $('#btnSalvarDados').addEventListener('click',()=>{
   if(!VENDO)p.nome_pessoa=$('#inpNomePessoa').value;
   salvarTrecho(p,$('#btnSalvarDados'),'Dados da lojinha salvos ✓');
 });
+let PRIO={};
+function pintarPrio(){const el=$('#prioLista');if(!el)return;const ativas=$$('#catsPerfil .chip.on').map(c=>c.textContent.trim());
+  if(!ativas.length){el.innerHTML='<p class="sub">Nenhuma categoria ligada.</p>';return}
+  el.innerHTML=ativas.map(n=>{const p=PRIO[n]||3;return '<div class="linha"><div class="cresce"><b style="font-size:.92rem">'+escHtml(n)+'</b></div><div class="prio-btns">'+[1,2,3].map(k=>'<button class="prio-b'+(p===k?' on':'')+'" data-cat="'+escHtml(n)+'" data-n="'+k+'">'+k+'</button>').join('')+'</div></div>'}).join('');
+  $$('#prioLista .prio-b').forEach(b=>b.addEventListener('click',async()=>{const nome=b.dataset.cat,n=parseInt(b.dataset.n);PRIO[nome]=n;pintarPrio();
+    try{const d=await api('salvar-prioridades',{token:TOKEN,tenant_slug:VENDO||undefined,prioridades:{[nome]:n}});if(d&&d.ok)toast(nome+' agora é prioridade '+n+' ✓');else toast('Não salvou a prioridade')}catch(e){toast('Sem conexão agora')}}))}
+$('#btnSenha').addEventListener('click',async()=>{const a=$('#senhaAtual').value,n=$('#senhaNova').value,cf=$('#senhaConf').value;
+  if(!a){toast('Coloca sua senha atual');return}
+  if(n.length<6){toast('A senha nova precisa de pelo menos 6 caracteres');return}
+  if(n!==cf){toast('A senha nova e a repetição não batem');return}
+  const btn=$('#btnSenha');btn.disabled=true;btn.textContent='Trocando...';
+  try{const d=await api('trocar-senha',{token:TOKEN,senha_atual:a,senha_nova:n});
+    if(d&&d.ok){toast('Senha trocada ✓ — usa a nova no próximo login');$('#senhaAtual').value='';$('#senhaNova').value='';$('#senhaConf').value=''}
+    else toast(d.erro||'Não trocou a senha')}catch(e){toast('Sem conexão agora')}
+  btn.disabled=false;btn.textContent='Trocar senha'});
+function pintarAquec(){if(!REGRAS)return;const dv=parseInt(REGRAS.aquecimento_dias||0);$$('#aquecChips .chip').forEach(c=>c.classList.toggle('on',parseInt(c.dataset.dias)===dv))}
+$$('#aquecChips .chip').forEach(c=>c.addEventListener('click',()=>{$$('#aquecChips .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');salvarRegras({aquecimento_dias:parseInt(c.dataset.dias)})}));
 $('#btnAplicarCats').addEventListener('click',()=>{
   salvarTrecho({token:TOKEN,tenant_slug:VENDO||undefined,categorias:$$('#catsPerfil .chip.on').map(c=>c.textContent.trim())},
     $('#btnAplicarCats'),'Categorias aplicadas ✓');
