@@ -640,6 +640,7 @@ function aplicar(d){
     $$('.swLoja[data-loja]').forEach(s=>{s.checked=(rg.lojas_ativas||[]).includes(s.dataset.loja)});
     if(typeof atualizarStatusRobo==='function')atualizarStatusRobo();
     if(typeof carregarInicio==='function')carregarInicio();
+    if(typeof atualizarCx==='function')atualizarCx();
   }
   if(!L&&u.admin){$('#nomeTopo').textContent='GarimpoBot — Admin'}
   const minhaLojinha=!u.admin;
