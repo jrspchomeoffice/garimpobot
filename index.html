@@ -232,8 +232,8 @@
     </div>
     <div class="card">
       <h2>Telegram</h2>
-      <div class="linha"><div class="cresce"><b>Seu canal no Telegram</b><small>As mesmas ofertas, postadas junto com o WhatsApp — ativa junto com o robô</small></div><span class="pill warn">AGUARDANDO</span></div>
-      <div class="linha"><div class="cresce"><b>Fontes de onde o robô garimpa</b><small>Grupos e canais vigiados entram quando o robô ativar</small></div><span class="pill off">PARADO</span></div>
+      <div class="linha"><div class="cresce"><b>Ouvido central do GarimpoBot</b><small>Escuta os canais de ofertas uma vez só e distribui o garimpo pra todas as lojinhas — você não precisa conectar nada aqui</small></div><span class="pill off" id="tgPillOuvido">VERIFICANDO…</span></div>
+      <div class="linha"><div class="cresce"><b>Fontes de onde o robô garimpa</b><small id="tgFontesTxt">Consultando os canais em escuta…</small></div><span class="pill off" id="tgPillFontes">…</span></div>
     </div>
     <div class="card">
       <h2>Suas contas de afiliada</h2>
@@ -451,7 +451,22 @@ function aplicarCx(d){
 }
 async function atualizarCx(){
   if(!TOKEN)return;
+  atualizarTelegram();
   try{const d=await api('conexao-status',dadosCx());if(d.ok)aplicarCx(d);else toast(d.erro||'Não deu pra conferir a conexão')}catch(e){}
+}
+async function atualizarTelegram(){
+  if(!TOKEN)return;
+  const po=$('#tgPillOuvido'),pf=$('#tgPillFontes'),tx=$('#tgFontesTxt');
+  if(!po)return;
+  try{
+    const d=await api('telegram-status',dadosCx());
+    if(!d.ok){po.textContent='—';return}
+    if(d.ouvindo){po.textContent='LIGADO';po.className='pill ok'}
+    else{po.textContent='DESLIGADO';po.className='pill off'}
+    const nomes=(d.fontes||[]).map(f=>f.nome).join(', ');
+    if(d.total_fontes>0){pf.textContent='ATIVO';pf.className='pill ok';tx.textContent=d.total_fontes+' canal(is) em escuta'+(nomes?': '+nomes:'')}
+    else{pf.textContent='SEM FONTES';pf.className='pill warn';tx.textContent='Nenhum canal cadastrado ainda — a equipe do GarimpoBot liga as fontes pra você'}
+  }catch(e){}
 }
 $('#btnQr').addEventListener('click',async()=>{
   const c=$('#caixaQr');$('#caixaCodigo').style.display='none';
