@@ -117,6 +117,9 @@
   .pwa-caixa h3{color:var(--cor-esc);font-size:.92rem;margin:.7rem 0 .25rem}
   .pwa-caixa p{font-size:.88rem;margin-bottom:.4rem}
   .pwa-caixa .btn{width:100%;margin-top:.6rem}
+.acoes{display:flex;gap:.4rem;margin-top:.45rem;flex-wrap:wrap}
+.btn.mini{padding:.34rem .7rem;font-size:.8rem}
+.card.curva{border:1.5px solid #f0b429;background:#fffaf0}
 </style>
 </head>
 <body>
@@ -232,6 +235,12 @@
       <div class="linha"><div class="cresce"><b>Fontes de onde o robô garimpa</b><small id="tgFontesTxt">Consultando os canais em escuta…</small></div><span class="pill off" id="tgPillFontes">…</span></div>
     </div>
     <div class="card">
+      <h2>📲 Avisos de bug de preço</h2>
+      <p class="sub">Quando o robô achar um <b>bug de preço</b> (aqueles erros de loja que duram poucos minutos), ele te manda uma mensagem na hora pra você não perder. Cadastre aqui o número que vai RECEBER esses avisos: quem envia é o chip da sua lojinha — o seu número nunca é conectado ao sistema e nunca posta nada, ele só recebe.</p>
+      <div class="linha"><div class="cresce"><b>Número que recebe os avisos</b><small id="avAtual">Nenhum número cadastrado ainda</small></div></div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem"><input id="avNumero" type="tel" placeholder="Seu WhatsApp — ex.: (21) 99999-9999" style="flex:1;min-width:210px"><button class="btn" id="btnAvisos">Salvar número</button></div>
+    </div>
+    <div class="card">
       <h2>Suas contas de afiliada</h2>
       <p class="sub">É com estes códigos que o robô monta o seu link. Sem eles, a comissão não cai pra você.</p>
       <div class="linha"><div class="cresce"><b>Shopee</b><small>Aguardando seus códigos (aba Perfil)</small></div><span class="pill warn">PENDENTE</span></div>
@@ -292,6 +301,11 @@
 
   <!-- ============ ABA GARIMPOS ============ -->
   <section class="tela" id="tela-garimpos">
+    <div class="card curva" id="gCurva" style="display:none">
+      <h2>⭐ Fora da curva</h2>
+      <p class="sub">As ofertas fora do comum de hoje — bug de preço e as maiores notas, de todas as categorias, mesmo fora dos seus nichos. Viu uma que é a sua cara? Posta você mesma, como uma oferta exclusiva sua 💛</p>
+      <div id="gCurvaLista"></div>
+    </div>
     <div class="card">
       <h2>O garimpo de hoje</h2>
       <div class="nums" style="margin:.5rem 0">
@@ -497,6 +511,7 @@ $('#btnGerarCodigo').addEventListener('click',async()=>{
   }catch(e){toast('Sem conexão agora — tenta de novo')}
   b.disabled=false;b.textContent='Gerar meu código';
 });
+const bAv=$('#btnAvisos');if(bAv)bAv.addEventListener('click',async()=>{const v=$('#avNumero').value;try{const d=await api('salvar-avisos',dadosCx({numero:v}));if(d&&d.ok){$('#avAtual').textContent='Avisos vão pra '+d.numero;toast('Número dos avisos salvo ✓')}else toast('Confere o número: DDD + número (com 55 na frente, se tiver)')}catch(e){toast('Não deu pra salvar agora')}});
 $('#btnDesconectar').addEventListener('click',async()=>{
   try{const d=await api('desconectar',dadosCx());if(d.ok){toast('Número desconectado');$('#codigoPareamento').textContent='–––– ––––';atualizarCx()}else toast(d.erro||'Não desconectou')}catch(e){toast('Sem conexão agora')}
 });
@@ -545,21 +560,49 @@ function infoDe(o){
   if(stDe(o)==='fila')return o.programada_para?('na fila — posta por volta das '+horaCurta(o.programada_para)):'na fila pra postar';
   return 'descartada: '+(MOTIVOS[o.motivo]||'não aproveitada');
 }
+function linhaOferta(o){
+  const st=stDe(o);const lj=LOJAS[o.loja]||[o.loja,'#888','··'];
+  const pill=st==='postada'?'<span class="pill">POSTADA</span>':st==='fila'?'<span class="pill warn">NA FILA</span>':'<span class="pill off">DESCARTADA</span>';
+  const preco=o.preco==null?'':('<div class="preco">'+(o.preco_de&&o.preco_de>o.preco?('<s>'+fmt(o.preco_de)+'</s> '):'')+'<b>'+fmt(o.preco)+'</b></div>');
+  const bug=o.bug?' <span class="pill" style="background:#f0b429;color:#4a3200">🚨 BUG DE PREÇO</span>':'';
+  const acoes=st==='postada'?'':'<div class="acoes"><button class="btn mini" onclick="postarAgora(\''+o.id+'\',this)">⚡ Postar agora</button><button class="btn claro mini" onclick="copiarOferta(\''+o.id+'\',this)">📋 Copiar texto</button></div>';
+  return '<div class="oferta"><div class="mini" style="background:'+lj[1]+'">'+lj[2]+'</div><div class="cresce"><b>'+escHtml(o.titulo||'')+'</b>'+bug+'<small>'+lj[0]+(o.score!=null?(' · <span class="nota">nota '+o.score.toFixed(1)+'</span>'):'')+'</small>'+preco+'<small>'+infoDe(o)+'</small>'+acoes+'</div>'+pill+'</div>';
+}
 function renderG(f){
   const lista=G.filter(o=>f==='todas'||stDe(o)===f);
-  $('#listaGarimpo').innerHTML=lista.map(o=>{
-    const st=stDe(o);const lj=LOJAS[o.loja]||[o.loja,'#888','··'];
-    const pill=st==='postada'?'<span class="pill">POSTADA</span>':st==='fila'?'<span class="pill warn">NA FILA</span>':'<span class="pill off">DESCARTADA</span>';
-    const preco=o.preco==null?'':('<div class="preco">'+(o.preco_de&&o.preco_de>o.preco?('<s>'+fmt(o.preco_de)+'</s> '):'')+'<b>'+fmt(o.preco)+'</b></div>');
-    return '<div class="oferta"><div class="mini" style="background:'+lj[1]+'">'+lj[2]+'</div><div class="cresce"><b>'+escHtml(o.titulo||'')+'</b><small>'+lj[0]+(o.score!=null?(' · <span class="nota">nota '+o.score.toFixed(1)+'</span>'):'')+'</small>'+preco+'<small>'+infoDe(o)+'</small></div>'+pill+'</div>';
-  }).join('')||'<p style="color:var(--suave);font-size:.88rem;padding:.6rem 0">'+(G.length?'Nada neste filtro por enquanto.':'O robô ainda não avaliou nenhuma oferta hoje — ele garimpa a cada 30 minutos.')+'</p>';
+  $('#listaGarimpo').innerHTML=lista.map(linhaOferta).join('')||'<p style="color:var(--suave);font-size:.88rem;padding:.6rem 0">'+(G.length?'Nada neste filtro por enquanto.':'O robô ainda não avaliou nenhuma oferta hoje — ele garimpa a cada 30 minutos.')+'</p>';
+}
+function renderCurva(){
+  const box=$('#gCurva');if(!box)return;
+  const ativas=G.filter(o=>stDe(o)!=='postada');
+  const bugs=ativas.filter(o=>o.bug);
+  const tops=ativas.filter(o=>!o.bug&&o.score!=null).sort((a,b)=>b.score-a.score).slice(0,3);
+  const lista=bugs.concat(tops).slice(0,6);
+  if(!lista.length){box.style.display='none';return}
+  box.style.display='';
+  $('#gCurvaLista').innerHTML=lista.map(linhaOferta).join('');
+}
+const ERROS_POST={sem_conversao:'essa oferta ainda não dá pra montar com o seu link dessa loja',conversor_api_pendente:'a conversão dessa loja ainda não está ligada',conversor_sessao_pendente:'a conversão dessa loja ainda não está ligada',ja_postada:'essa oferta já foi postada',sem_grupo:'nenhum grupo ligado — liga um na aba Grupos',sem_preco:'essa oferta está sem preço agora',falha_envio:'não consegui enviar agora — tenta de novo',oferta_nao_encontrada:'oferta não encontrada'};
+async function postarAgora(id,btn){
+  if(btn){btn.disabled=true;btn.textContent='Postando…'}
+  try{const d=await api('postar-agora',dadosCx({oferta_id:id}));
+    if(d&&d.ok){toast('Postada no seu grupo ✓');carregarGarimpos()}
+    else toast(ERROS_POST[d&&d.erro]||'não deu pra postar agora');
+  }catch(e){toast('não deu pra postar agora')}
+  if(btn){btn.disabled=false;btn.textContent='⚡ Postar agora'}
+}
+async function copiarOferta(id,btn){
+  try{const d=await api('postar-agora',dadosCx({oferta_id:id,montar:true}));
+    if(d&&d.ok&&d.mensagem){try{await navigator.clipboard.writeText(d.mensagem)}catch(e){const ta=document.createElement('textarea');ta.value=d.mensagem;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}toast('Texto copiado — cola onde quiser 💛')}
+    else toast(ERROS_POST[d&&d.erro]||'não deu pra montar o texto');
+  }catch(e){toast('não deu pra montar o texto')}
 }
 async function carregarGarimpos(){
   if(!TOKEN)return;
   try{const d=await api('garimpos',dadosCx());if(!d||!d.ok)return;
     G=d.ofertas||[];
     $('#gEncontradas').textContent=d.encontradas;$('#gPostadas').textContent=d.postadas;$('#gFila').textContent=d.na_fila;
-    const on=$('#filtroGarimpo .chip.on');renderG(on?on.dataset.f:'todas');
+    const on=$('#filtroGarimpo .chip.on');renderG(on?on.dataset.f:'todas');renderCurva();
   }catch(e){}
 }
 $$('#filtroGarimpo .chip').forEach(c=>c.addEventListener('click',()=>{$$('#filtroGarimpo .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');renderG(c.dataset.f)}));
@@ -641,6 +684,8 @@ function aplicar(d){
     if(typeof atualizarStatusRobo==='function')atualizarStatusRobo();
     if(typeof carregarInicio==='function')carregarInicio();
     if(typeof atualizarCx==='function')atualizarCx();
+    const avN=$('#avNumero'),avA=$('#avAtual');
+    if(avN&&L.numero_avisos){avN.value=L.numero_avisos;if(avA)avA.textContent='Avisos vão pra '+L.numero_avisos}
   }
   if(!L&&u.admin){$('#nomeTopo').textContent='GarimpoBot — Admin'}
   const minhaLojinha=!u.admin;

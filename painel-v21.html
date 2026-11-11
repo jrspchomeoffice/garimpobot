@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GarimpoBot — Painel da Lojinha</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#5b2140">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GarimpoBot">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--cor:#e8547a;--cor-esc:#b93a5e;--vinho:#5b2140;--creme:#fff9f5;--txt:#3a2430;--suave:#8a6b76;--verde:#22a06b;--ambar:#e8a33d;--linha:#f0dde2;--sombra:0 4px 18px rgba(91,33,64,.09)}
+  body{font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;background:#f6ecec;color:var(--txt);line-height:1.5}
+  .app{max-width:680px;margin:0 auto;padding:0 .9rem}
+  header{display:flex;align-items:center;gap:.65rem;padding:.9rem .2rem .4rem}
+  .logo{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--cor),var(--vinho));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;overflow:hidden;box-shadow:var(--sombra)}
+  .logo img{width:100%;height:100%;object-fit:cover}
+  header b{color:var(--vinho);font-size:1.08rem;display:block;line-height:1.15}
+  header small{color:var(--suave)}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--verde);display:inline-block;margin-right:.3rem}
+  .dot.off{background:#d33}
+  .dot.warn{background:#e6a817}
+  .tela{display:none;padding-top:.6rem}
+  .tela.on{display:block}
+  .card{background:#fff;border:1px solid var(--linha);border-radius:18px;padding:1rem;margin-bottom:.9rem;box-shadow:var(--sombra)}
+  .card h2{color:var(--vinho);font-size:1.02rem;margin-bottom:.35rem}
+  .card .sub{font-size:.85rem;color:var(--suave);margin-bottom:.6rem}
+  .pill{font-weight:800;font-size:.72rem;border-radius:999px;padding:.22rem .65rem;background:#e3f6ec;color:#157347;white-space:nowrap}
+  .pill.off{background:#fde3e3;color:#a12626}.pill.warn{background:#fff1d6;color:#96660a}
+  .linha{display:flex;align-items:center;gap:.6rem;padding:.55rem 0;border-bottom:1px dashed var(--linha)}
+  .linha:last-child{border-bottom:none}
+  .linha .cresce{flex:1}.linha b{font-size:.93rem}.linha small{display:block;color:var(--suave);font-size:.76rem}
+  .sw{position:relative;width:50px;height:28px;flex:none;cursor:pointer}
+  .sw input{display:none}
+  .sw i{position:absolute;inset:0;background:#ddd;border-radius:999px;transition:.2s}
+  .sw i:before{content:'';position:absolute;width:22px;height:22px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+  .sw input:checked + i{background:var(--cor)}
+  .sw input:checked + i:before{transform:translateX(22px)}
+  .btn{display:inline-block;border:none;cursor:pointer;font-weight:700;border-radius:999px;padding:.6rem 1.1rem;font-size:.9rem;background:var(--cor);color:#fff;text-align:center}
+  .btn.claro{background:#fff;color:var(--cor-esc);border:1.5px solid var(--cor)}
+  .btn.perigo{background:#fff;color:#a12626;border:1.5px solid #e5a3a3}
+  .btn:disabled{opacity:.45;cursor:default}
+  input[type=text],input[type=tel]{width:100%;border:1.5px solid var(--linha);border-radius:12px;padding:.6rem .8rem;font-size:.93rem;background:#fff;outline:none;margin:.25rem 0 .6rem}
+  input[type=text]:focus{border-color:var(--cor)}
+  label.rot{font-size:.8rem;font-weight:700;color:var(--vinho)}
+  input[type=range]{width:100%;accent-color:var(--cor)}
+  .valor{font-weight:800;color:var(--cor-esc)}
+  .chips{display:flex;gap:.4rem;flex-wrap:wrap}
+  .chip{border:1.5px solid var(--linha);background:#fff;color:var(--suave);border-radius:999px;padding:.32rem .8rem;font-size:.82rem;cursor:pointer;font-weight:600}
+  .chip.on{background:var(--cor);border-color:var(--cor);color:#fff}
+  .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+  .num{background:var(--creme);border:1px solid var(--linha);border-radius:14px;padding:.6rem .3rem;text-align:center}
+  .num b{display:block;font-size:1.25rem;color:var(--vinho)}.num span{font-size:.66rem;color:var(--suave)}
+  .barra{height:9px;background:#f3e2e6;border-radius:99px;overflow:hidden;margin:.35rem 0}
+  .barra i{display:block;height:100%;background:var(--cor);border-radius:99px}
+  .qr{width:170px;height:170px;margin:.6rem auto;display:grid;grid-template-columns:repeat(12,1fr);gap:2px;background:#fff;padding:8px;border:1.5px solid var(--linha);border-radius:12px}
+  .qr i{background:#fff}.qr i.p{background:#222}
+  .oferta{display:flex;gap:.7rem;padding:.6rem 0;border-bottom:1px dashed var(--linha);align-items:center}
+  .oferta:last-child{border-bottom:none}
+  .mini{width:52px;height:52px;border-radius:12px;flex:none;color:#fff;font-weight:800;font-size:.62rem;display:flex;align-items:center;justify-content:center;text-align:center;padding:.2rem}
+  .oferta .cresce{flex:1}.oferta b{font-size:.88rem;line-height:1.25;display:block}
+  .oferta small{color:var(--suave);font-size:.74rem}
+  .preco{font-size:.82rem}.preco s{color:#aaa}.preco b{color:var(--verde);display:inline}
+  .nota{font-size:.68rem;font-weight:800;background:#fff1d6;color:#96660a;border-radius:6px;padding:.1rem .4rem}
+  .cores{display:flex;gap:.55rem;margin:.4rem 0 .7rem}
+  .cor{width:38px;height:38px;border-radius:50%;cursor:pointer;border:3px solid transparent}
+  .cor.on{border-color:var(--vinho)}
+  nav{position:sticky;top:6px;background:#fff;border:1px solid var(--linha);border-radius:16px;z-index:30;box-shadow:var(--sombra);margin:.4rem 0 .2rem}
+  nav .dentro{display:grid;grid-template-columns:repeat(6,1fr);padding:.3rem}
+  nav button{background:none;border:none;padding:.5rem 0 .55rem;font-size:.6rem;font-weight:700;color:var(--suave);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:.15rem}
+  nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  nav button.on{color:var(--cor-esc);background:#fdf0f3;border-radius:12px}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(80px);background:var(--vinho);color:#fff;padding:.6rem 1.1rem;border-radius:999px;font-size:.87rem;font-weight:600;opacity:0;transition:.3s;z-index:50;box-shadow:var(--sombra);max-width:92vw;text-align:center}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .dash-hero{background:linear-gradient(135deg,var(--cor),var(--vinho));color:#fff;border-radius:20px;padding:1.15rem;margin-bottom:.9rem;box-shadow:var(--sombra)}
+  .dash-hero h2{color:#fff;font-size:1.25rem;margin:0}
+  .dash-hero .data{opacity:.85;font-size:.8rem;text-transform:capitalize}
+  .dash-hero .frase{margin-top:.35rem;font-size:.93rem;opacity:.95}
+  .dash-stats{display:flex;gap:1.1rem;margin-top:.85rem;flex-wrap:wrap}
+  .dash-stats div b{display:block;font-size:1.15rem}.dash-stats div span{font-size:.68rem;opacity:.85}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.9rem}
+  .kpi{background:#fff;border:1px solid var(--linha);border-radius:16px;padding:.85rem;box-shadow:var(--sombra)}
+  .kpi b{display:block;font-size:1.45rem;color:var(--vinho);line-height:1.15}.kpi span{font-size:.74rem;color:var(--suave)}
+  .kpi .delta{font-size:.72rem;font-weight:800;color:var(--verde)}
+  .graf{display:flex;align-items:flex-end;gap:.55rem;height:110px;margin-top:.6rem}
+  .graf .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem;height:100%;justify-content:flex-end}
+  .graf .barraV{width:100%;max-width:44px;background:linear-gradient(180deg,var(--cor),var(--cor-esc));border-radius:8px 8px 4px 4px}
+  .graf .col small{font-size:.66rem;color:var(--suave)} .graf .col b{font-size:.72rem;color:var(--vinho)}
+  .atalhos{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+
+  .login{position:fixed;inset:0;z-index:60;background:linear-gradient(160deg,var(--vinho),#7c2d4e 55%,var(--cor-esc));display:flex;align-items:center;justify-content:center;padding:1.2rem}
+  .login .caixa{background:var(--creme);border-radius:20px;padding:1.6rem 1.4rem;max-width:360px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+  .login h1{font-size:1.35rem;color:var(--vinho);margin:.2rem 0 .3rem}
+  .login .sub2{color:var(--suave);font-size:.9rem;margin:0 0 1rem}
+  .login label{font-size:.8rem;color:var(--suave);display:block;margin:.7rem 0 .25rem}
+  .login input{width:100%;padding:.65rem .8rem;border:1px solid var(--linha);border-radius:12px;font-size:1rem;background:#fff}
+  .login .btn{width:100%;margin-top:1rem}
+  .login .atalhos-conta{display:grid;gap:.5rem;margin-top:1rem}
+  .login .nota{font-size:.78rem;color:var(--suave);margin-top:1rem;line-height:1.45}
+
+  /* ===== PWA v14: popup de instalação + ajuda ===== */
+  .pwa-pop{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;width:min(94vw,640px);background:#fff;border:1px solid var(--linha);border-radius:18px;box-shadow:0 12px 34px rgba(91,33,64,.28);padding:.85rem;display:flex;gap:.7rem;align-items:center;z-index:80}
+  .pwa-pop img{width:52px;height:52px;border-radius:14px;flex:none}
+  .pwa-pop .pwa-txt{flex:1}.pwa-pop .pwa-txt b{display:block;color:var(--vinho);font-size:.95rem}
+  .pwa-pop .pwa-txt small{color:var(--suave);font-size:.78rem;line-height:1.35;display:block}
+  .pwa-pop .pwa-btns{display:flex;flex-direction:column;gap:.4rem}
+  .pwa-pop .pwa-btns .btn{padding:.5rem .9rem;font-size:.82rem;white-space:nowrap}
+  @media(max-width:520px){.pwa-pop{flex-wrap:wrap}.pwa-pop .pwa-btns{flex-direction:row;width:100%}.pwa-pop .pwa-btns .btn{flex:1}}
+  .pwa-fundo{position:fixed;inset:0;background:rgba(59,20,38,.55);z-index:90;display:flex;align-items:center;justify-content:center;padding:1rem}
+  .pwa-caixa{background:var(--creme);border-radius:18px;padding:1.3rem;max-width:380px;width:100%;max-height:calc(100dvh - 2rem);overflow-y:auto;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+  .pwa-caixa h2{color:var(--vinho);font-size:1.05rem;margin-bottom:.5rem}
+  .pwa-caixa h3{color:var(--cor-esc);font-size:.92rem;margin:.7rem 0 .25rem}
+  .pwa-caixa p{font-size:.88rem;margin-bottom:.4rem}
+  .pwa-caixa .btn{width:100%;margin-top:.6rem}
+.acoes{display:flex;gap:.4rem;margin-top:.45rem;flex-wrap:wrap}
+.btn.mini{padding:.34rem .7rem;font-size:.8rem}
+.card.curva{border:1.5px solid #f0b429;background:#fffaf0}
+</style>
+</head>
+<body>
+<div class="login" id="telaLogin">
+  <div class="caixa">
+    <div class="logo" style="width:52px;height:52px"><span>GB</span></div>
+    <h1>GarimpoBot</h1>
+    <p class="sub2">O robô que garimpa ofertas e posta na sua lojinha. Entre com seu acesso. Cada lojinha só enxerga a si mesma: sua marca, seu robô, seus números.</p>
+    <div id="campoNome" style="display:none">
+    <label>Seu nome</label>
+    <input type="text" id="cadNome" placeholder="como o painel vai te chamar" autocomplete="name">
+    </div>
+    <label>Seu e-mail</label>
+    <input type="email" id="loginEmail" placeholder="voce@email.com" autocomplete="username">
+    <label>Sua senha</label>
+    <input type="password" id="loginSenha" placeholder="••••••••" autocomplete="current-password">
+    <button class="btn" id="btnEntrar">Entrar no meu painel</button>
+    <p id="loginErro" style="display:none;color:#c0392b;font-weight:600;font-size:.88rem;margin-top:.7rem"></p>
+    <p class="nota"><span id="loginModoTxt">Entre com seu acesso.</span><br>
+    <a href="#" id="linkCadastro">Criar minha conta</a> · <a href="#" id="linkPrimeiro">Primeiro acesso</a><a href="#" id="linkVoltar" style="display:none">Voltar pro login</a></p>
+    <p class="nota">Cada lojinha só enxerga a si mesma: sua marca, seu robô, seus números — tudo vem do seu perfil.</p>
+  </div>
+</div>
+<div class="login" id="telaPendente" style="display:none">
+  <div class="caixa">
+    <div class="logo" style="width:52px;height:52px"><span>GB</span></div>
+    <h1>Aguardando aprovação</h1>
+    <p class="sub2" id="pendenteMsg">Sua conta foi criada e está aguardando a aprovação do admin.</p>
+    <button class="btn" id="btnPendenteVoltar">Voltar pro login</button>
+    <p class="nota">Nada mais a fazer por aqui — quando o admin aprovar, o mesmo e-mail e senha abrem o seu painel.</p>
+  </div>
+</div>
+<div class="app">
+  <header>
+    <div class="logo" id="logoTopo"><span id="iniciais">SL</span></div>
+    <div style="flex:1"><b id="nomeTopo">Sua lojinha</b><small><span class="dot off" id="dotRobo"></span><span id="statusRobo">Robô aguardando ativação</span></small></div>
+    <span class="pill off" id="pillNumero">WhatsApp não conectado</span>
+  </header>
+  <nav><div class="dentro"><button data-tela="inicio" class="on"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>Início</button><button data-tela="perfil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Perfil</button><button data-tela="conexao"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.45c.9.34 1.84.57 2.8.7A2 2 0 0 1 22 16.9z"/></svg>Conexão</button><button data-tela="robo"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M8 4h8"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/><path d="M9 17.5h6"/></svg>Robô</button><button data-tela="grupos"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Grupos</button><button data-tela="garimpos"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Garimpos</button><button data-tela="admin" id="navAdmin" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V5z"/><path d="m9 12 2 2 4-4"/></svg>Admin</button></div></nav>
+  <!-- ============ ABA INÍCIO (DASHBOARD) ============ -->
+  <section class="tela on" id="tela-inicio">
+    <div class="dash-hero">
+      <div class="data" id="dashData">hoje</div>
+      <h2 id="saudacao">Olá!</h2>
+      <p class="frase" id="heroFrase">Carregando o dia da sua lojinha…</p>
+      <div class="dash-stats">
+        <div><b id="stPostadas">–</b><span>ofertas postadas hoje</span></div>
+        <div><b id="stMembros">–</b><span>membros no grupo</span></div>
+        <div><b id="stProxima">–</b><span>próxima postagem</span></div>
+      </div>
+    </div>
+    <div class="card" id="cardInstalar" style="display:none">
+      <h2>📱 Sua lojinha como aplicativo</h2>
+      <p class="sub">Instale o GarimpoBot na tela inicial do seu celular: ele abre direto, em tela cheia, sem precisar abrir o navegador.</p>
+      <button class="btn" id="btnInstalarCard">Instalar aplicativo</button>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><span>Ofertas postadas hoje</span><b id="kPostadas">–</b><span class="delta" id="kPostadasD">consultando…</span></div>
+      <div class="kpi"><span>Na fila pra postar</span><b id="kFila">–</b><span class="delta" id="kFilaD">consultando…</span></div>
+      <div class="kpi"><span>Membros no grupo</span><b id="kMembros">–</b><span class="delta" id="kMembrosD">consultando…</span></div>
+      <div class="kpi"><span>Última postagem</span><b id="kUltima">–</b><span class="delta" id="kUltimaD">consultando…</span></div>
+    </div>
+    <div class="card">
+      <h2 id="passosTitulo">Falta pouco pra ligar sua lojinha</h2>
+      <p class="sub">São estes os passos — o selo muda sozinho quando cada um fica pronto:</p>
+      <div class="linha"><div class="cresce"><b>1 · Seu grupo do WhatsApp</b><small>Você cria no seu número (2 minutinhos) — ou a gente usa um que você já tenha</small></div><span class="pill warn" id="ppGrupo">AGUARDANDO</span></div>
+      <div class="linha"><div class="cresce"><b>2 · O chip do robô</b><small>Um chip pré-pago baratinho, só pra lojinha — é ele quem vai postar</small></div><span class="pill warn" id="ppChip">AGUARDANDO</span></div>
+      <div class="linha"><div class="cresce"><b>3 · Seus códigos da Shopee e do Mercado Livre</b><small>Ficam guardados na aba Perfil — é com eles que o robô monta o SEU link</small></div><span class="pill warn" id="ppCodigos">AGUARDANDO</span></div>
+      <div class="linha"><div class="cresce"><b>4 · O robô começa sozinho</b><small>Quando os 3 passos acima estiverem certos, ele garimpa e posta sem você fazer nada</small></div><span class="pill">AUTOMÁTICO</span></div>
+    </div>
+    <div class="card">
+      <h2>Melhor oferta de hoje</h2>
+      <p class="sub" style="margin:.4rem 0 0" id="melhorTxt">Quando o robô postar, a oferta com a melhor nota do dia aparece aqui.</p>
+    </div>
+    <div class="card" id="cardMaster" style="display:none">
+      <h2>Suas lojinhas (visão master)</h2>
+      <p class="sub">Você entrou como dono da plataforma: abra o painel de qualquer lojinha pra conferir ou ajustar.</p>
+      <div id="listaLojinhas"></div>
+    </div>
+    <div class="atalhos">
+      <button class="btn claro" data-go="garimpos">Ver o garimpo de hoje</button>
+      <button class="btn claro" data-go="robo">Controlar o robô</button>
+    </div>
+  </section>
+
+
+  <!-- ============ ABA CONEXÃO ============ -->
+  <section class="tela" id="tela-conexao">
+    <div class="card">
+      <h2>Seu número de WhatsApp</h2>
+      <p class="sub">É deste número que o robô posta as ofertas no seu grupo. Use um número só pra lojinha — pode ser um chip baratinho.</p>
+      <div class="linha"><div class="cresce"><b id="tituloNumero">Nenhum número conectado</b><small id="estadoNumero">Conecta por código de 8 dígitos — igual nos outros sistemas, sem apontar a câmera pro próprio celular</small></div><span class="pill warn" id="pillSessao">AGUARDANDO</span></div>
+      <label class="rot" for="inpChip">Número do chip do robô (com DDD)</label>
+      <input type="tel" id="inpChip" inputmode="numeric" autocomplete="tel" placeholder="ex.: 21 99999-9999" style="width:100%">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem">
+        <button class="btn alt" id="btnCodigo">Conectar por código</button>
+        <button class="btn claro" id="btnQr">QR Code (com outro celular)</button>
+        <button class="btn perigo" id="btnDesconectar">Desconectar</button>
+      </div>
+      <div id="caixaCodigo" style="display:none;text-align:center">
+        <div style="letter-spacing:6px;font-size:27px;font-weight:800;background:#f3f4f6;border:1px dashed #c9cdd4;border-radius:10px;padding:12px" id="codigoPareamento">–––– ––––</div>
+        <button class="btn alt" id="btnGerarCodigo" style="margin-top:8px">Gerar meu código</button>
+        <p class="sub" style="margin:8px 0 0">No celular do chip: <b>WhatsApp → Aparelhos conectados → Conectar aparelho → “Conectar com número de telefone”</b> e digite o código. Pronto: conectado.</p>
+      </div>
+      <div id="caixaQr" style="display:none;text-align:center">
+        <div class="qr" id="qr" style="display:flex;align-items:center;justify-content:center"><span class="sub">Gerando o QR…</span></div>
+        <p class="sub" style="margin:0">Pra conectar outro número: abre o WhatsApp dele → Aparelhos conectados → Conectar aparelho → aponta pra este código.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Telegram</h2>
+      <div class="linha"><div class="cresce"><b>Ouvido central do GarimpoBot</b><small>Escuta os canais de ofertas uma vez só e distribui o garimpo pra todas as lojinhas — você não precisa conectar nada aqui</small></div><span class="pill off" id="tgPillOuvido">VERIFICANDO…</span></div>
+      <div class="linha"><div class="cresce"><b>Fontes de onde o robô garimpa</b><small id="tgFontesTxt">Consultando os canais em escuta…</small></div><span class="pill off" id="tgPillFontes">…</span></div>
+    </div>
+    <div class="card">
+      <h2>📲 Avisos de bug de preço</h2>
+      <p class="sub">Quando o robô achar um <b>bug de preço</b> (aqueles erros de loja que duram poucos minutos), ele te manda uma mensagem na hora pra você não perder. Cadastre aqui o número que vai RECEBER esses avisos: quem envia é o chip da sua lojinha — o seu número nunca é conectado ao sistema e nunca posta nada, ele só recebe.</p>
+      <div class="linha"><div class="cresce"><b>Número que recebe os avisos</b><small id="avAtual">Nenhum número cadastrado ainda</small></div></div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem"><input id="avNumero" type="tel" placeholder="Seu WhatsApp — ex.: (21) 99999-9999" style="flex:1;min-width:210px"><button class="btn" id="btnAvisos">Salvar número</button></div>
+    </div>
+    <div class="card">
+      <h2>Suas contas de afiliada</h2>
+      <p class="sub">É com estes códigos que o robô monta o seu link. Sem eles, a comissão não cai pra você.</p>
+      <div class="linha"><div class="cresce"><b>Shopee</b><small>Aguardando seus códigos (aba Perfil)</small></div><span class="pill warn">PENDENTE</span></div>
+      <div class="linha"><div class="cresce"><b>Mercado Livre</b><small>Aguardando seu link de afiliada (aba Perfil)</small></div><span class="pill warn">PENDENTE</span></div>
+      <div class="linha"><div class="cresce"><b>Amazon</b><small>Tag de Associados — quando você tiver (opcional)</small></div><span class="pill off">OPCIONAL</span></div>
+    </div>
+  </section>
+
+  <!-- ============ ABA ROBÔ ============ -->
+  <section class="tela" id="tela-robo">
+    <div class="card">
+      <div class="linha" style="border:none;padding-top:0"><div class="cresce"><b style="font-size:1.02rem;color:var(--vinho)" id="titRobo">Robô aguardando ativação</b><small id="txtRobo">Ele liga quando o grupo, o chip e seus códigos estiverem conectados</small></div><label class="sw"><input type="checkbox" id="swRobo"><i></i></label></div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn" id="btnPausar" disabled>Pausar agora</button>
+        <button class="btn claro" id="btnVoltar" disabled>Voltar a postar</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>De quais lojas ele garimpa</h2>
+      <div class="linha"><div class="cresce"><b>Shopee</b><small>Via API oficial da sua conta</small></div><label class="sw"><input type="checkbox" class="swLoja" data-loja="shopee" checked><i></i></label></div>
+      <div class="linha"><div class="cresce"><b>Mercado Livre</b><small>Mais vendidos e ofertas do dia</small></div><label class="sw"><input type="checkbox" class="swLoja" data-loja="mercado_livre" checked><i></i></label></div>
+      <div class="linha"><div class="cresce"><b>Amazon</b><small>Ofertas do dia</small></div><label class="sw"><input type="checkbox" class="swLoja" data-loja="amazon" checked><i></i></label></div>
+      <div class="linha"><div class="cresce"><b>AliExpress</b><small>Produtos em alta</small></div><label class="sw"><input type="checkbox" class="swLoja" data-loja="aliexpress"><i></i></label></div>
+      <div class="linha"><div class="cresce"><b>Grupos e canais vigiados</b><small>Espelhamento: ele copia a oferta e troca o link pelo seu</small></div><span class="pill ok">SEMPRE ATIVO</span></div>
+    </div>
+    <div class="card">
+      <h2>Regras do garimpo</h2>
+      <p class="sub" style="margin-top:.4rem">Ofertas por dia: <span class="valor" id="vPosts">10</span></p>
+      <input type="range" id="rPosts" min="4" max="30" value="10">
+      <p class="sub" style="margin-top:.7rem">Desconto mínimo pra aprovar: <span class="valor" id="vDesc">20%</span></p>
+      <input type="range" id="rDesc" min="0" max="60" value="20">
+      <p class="sub" style="margin-top:.7rem">Avaliação mínima do produto: <span class="valor" id="vNota">4.0</span></p>
+      <input type="range" id="rNota" min="0" max="5" step="0.1" value="4.0">
+      <p class="sub" style="margin-top:.8rem">Horários de postagem</p>
+      <div class="chips" id="horarios">
+        <button class="chip on">07:30</button><button class="chip">10:00</button><button class="chip on">12:00</button>
+        <button class="chip on">15:00</button><button class="chip on">18:00</button><button class="chip on">20:30</button><button class="chip">22:00</button>
+      </div>
+      <div class="linha" style="margin-top:.5rem"><div class="cresce"><b>Silêncio da noite</b><small>Não posta entre 23h e 6h30</small></div><label class="sw"><input type="checkbox" checked><i></i></label></div>
+      <div class="linha"><div class="cresce"><b>Não repetir a mesma oferta</b><small>Mesmo produto só volta se o preço cair de verdade</small></div><label class="sw"><input type="checkbox" checked><i></i></label></div>
+      <div class="linha"><div class="cresce"><b>Conferir o preço antes de postar</b><small>Se subiu ou acabou, ele pula a oferta</small></div><label class="sw"><input type="checkbox" checked><i></i></label></div>
+    </div>
+  </section>
+
+  <!-- ============ ABA GRUPOS ============ -->
+  <section class="tela" id="tela-grupos">
+    <div class="card">
+      <div class="linha"><div class="cresce"><h2 style="margin:0">Meus grupos do WhatsApp</h2><small style="color:var(--suave)">Os grupos onde o número do robô está — liga a chavinha nos grupos em que ele pode postar ofertas</small></div><span class="pill off" id="grPill">…</span></div>
+      <div id="grLista" style="margin-top:.5rem"><p class="sub">Carregando grupos…</p></div>
+      <button class="btn claro" id="btnGruposAtualizar" style="margin-top:.5rem">Atualizar lista</button>
+    </div>
+    <div class="card">
+      <h2>Resumo da semana</h2>
+      <div class="linha"><div class="cresce"><b>Ofertas postadas</b></div><b id="rsPostadas">–</b></div>
+      <div class="linha"><div class="cresce"><b>Ofertas avaliadas pelo robô</b></div><b id="rsAvaliadas">–</b></div>
+    </div>
+  </section>
+
+  <!-- ============ ABA GARIMPOS ============ -->
+  <section class="tela" id="tela-garimpos">
+    <div class="card curva" id="gCurva" style="display:none">
+      <h2>⭐ Fora da curva</h2>
+      <p class="sub">As ofertas fora do comum de hoje — bug de preço e as maiores notas, de todas as categorias, mesmo fora dos seus nichos. Viu uma que é a sua cara? Posta você mesma, como uma oferta exclusiva sua 💛</p>
+      <div id="gCurvaLista"></div>
+    </div>
+    <div class="card">
+      <h2>O garimpo de hoje</h2>
+      <div class="nums" style="margin:.5rem 0">
+        <div class="num"><b id="gEncontradas">–</b><span>encontradas</span></div>
+        <div class="num"><b id="gPostadas">–</b><span>postadas</span></div>
+        <div class="num"><b id="gFila">–</b><span>na fila</span></div>
+      </div>
+      <div class="chips" id="filtroGarimpo">
+        <button class="chip on" data-f="todas">Todas</button>
+        <button class="chip" data-f="postada">Postadas</button>
+        <button class="chip" data-f="fila">Na fila</button>
+        <button class="chip" data-f="descartada">Descartadas</button>
+      </div>
+      <div id="listaGarimpo"></div>
+    </div>
+  </section>
+  <!-- ============ ABA ADMIN (só o dono da plataforma) ============ -->
+  <section class="tela" id="tela-admin">
+    <div class="card">
+      <h2>Status do sistema</h2>
+      <div id="admStatus"><p class="sub">Carregando…</p></div>
+    </div>
+    <div class="card">
+      <h2>Aguardando aprovação</h2>
+      <div id="admPendentes"><p class="sub">Carregando…</p></div>
+    </div>
+    <div class="card">
+      <h2>Inserir usuário (já entra aprovado)</h2>
+      <label class="rot">Nome da pessoa</label>
+      <input type="text" id="admNome" placeholder="nome de quem você está inserindo">
+      <label class="rot">E-mail dela</label>
+      <input type="email" id="admEmail" placeholder="email@dela.com">
+      <button class="btn" id="btnAdmInserir" style="width:100%">Inserir já aprovado</button>
+      <p class="sub" style="margin-top:.5rem">Quem você insere não espera aprovação: a pessoa só cria a senha em “Primeiro acesso” e entra.</p>
+    </div>
+    <div class="card">
+      <h2>Usuários aprovados</h2>
+      <div id="admAprovados"><p class="sub">Carregando…</p></div>
+    </div>
+    <div class="card">
+      <h2>Acessos revogados</h2>
+      <div id="admRevogados"><p class="sub">Carregando…</p></div>
+    </div>
+  </section>
+
+  <!-- ============ ABA PERFIL ============ -->
+  <section class="tela" id="tela-perfil">
+    <div class="card">
+      <h2>Sua lojinha</h2>
+      <label class="rot">Seu nome</label>
+      <input type="text" id="inpNomePessoa" value="" placeholder="é por ele que o painel te cumprimenta">
+      <label class="rot">Nome da lojinha</label>
+      <input type="text" id="inpNome" value="">
+      <label class="rot">Frase de capa</label>
+      <input type="text" id="inpFrase" value="" placeholder="a frase que aparece no seu grupo e na vitrine">
+      <label class="rot">Foto ou logo</label>
+      <div style="display:flex;gap:.6rem;align-items:center;margin:.3rem 0 .6rem">
+        <div class="logo" id="logoPerfil" style="width:56px;height:56px"><span id="iniciaisPerfil">SL</span></div>
+        <label class="btn claro" style="cursor:pointer">Trocar foto<input type="file" id="inpFoto" accept="image/*" style="display:none"></label>
+      </div>
+      <label class="rot">Cor da sua marca</label>
+      <div class="cores" id="cores">
+        <div class="cor on" data-cor="#e8547a" data-esc="#b93a5e" style="background:#e8547a"></div>
+        <div class="cor" data-cor="#8e44ad" data-esc="#6d2f8a" style="background:#8e44ad"></div>
+        <div class="cor" data-cor="#22a06b" data-esc="#177a50" style="background:#22a06b"></div>
+        <div class="cor" data-cor="#4aa3e8" data-esc="#2f77b8" style="background:#4aa3e8"></div>
+        <div class="cor" data-cor="#f0762b" data-esc="#c2571a" style="background:#f0762b"></div>
+      </div>
+      <label class="rot">O que você quer vender</label>
+      <div class="chips" id="catsPerfil" style="margin:.3rem 0 .2rem">
+        <button class="chip">Casa e Lar</button><button class="chip">Cozinha</button><button class="chip">Saúde e Suplementos</button>
+        <button class="chip">Beleza e Cuidado</button><button class="chip">Limpeza</button><button class="chip">Bebê e Infantil</button>
+        <button class="chip">Moda Feminina</button><button class="chip">Mercado</button><button class="chip">Pets</button><button class="chip">Eletrônicos</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Seus códigos de afiliada</h2>
+      <p class="sub">Ficam guardados aqui. O robô usa pra montar o seu link em cada loja.</p>
+      <label class="rot">Shopee — seu ID</label>
+      <input type="text" id="codShopee" value="" placeholder="seu ID ou link da Shopee">
+      <label class="rot">Mercado Livre — seu link de afiliada</label>
+      <input type="text" id="codML" value="" placeholder="seu link do Mercado Livre">
+      <label class="rot">Amazon — sua tag</label>
+      <input type="text" id="codAmazon" value="" placeholder="sua tag da Amazon (se tiver)">
+      <label class="rot">Seu Instagram</label>
+      <input type="text" id="inpInstagram" value="" placeholder="@seuinstagram">
+      <button class="btn" id="btnSalvar" style="width:100%">Salvar o perfil</button>
+    </div>
+  </section>
+</div>
+
+
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
+/* Abas */
+$$('nav button').forEach(b=>b.addEventListener('click',()=>{
+  $$('nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  $$('.tela').forEach(t=>t.classList.remove('on'));$('#tela-'+b.dataset.tela).classList.add('on');
+  if(b.dataset.tela==='conexao')atualizarCx();
+  if(b.dataset.tela==='grupos'){carregarGrupos();if(typeof carregarInicio==='function')carregarInicio()}
+  if(b.dataset.tela==='inicio'&&typeof carregarInicio==='function')carregarInicio();
+  if(b.dataset.tela==='garimpos'&&typeof carregarGarimpos==='function')carregarGarimpos();
+  window.scrollTo({top:0});
+}));
+/* Conexão de verdade — WAHA via fachada (igual ao Gestor Ultra) */
+let timerCx=null;
+function dadosCx(extra){const d={token:TOKEN};if(VENDO)d.tenant_slug=VENDO;Object.assign(d,extra||{});return d}
+function aplicarCx(d){
+  const pill=$('#pillSessao'),pil2=$('#pillNumero'),tit=$('#tituloNumero'),est=$('#estadoNumero');
+  const num=d.numero?String(d.numero).replace(/(\d{2})(\d{2})(\d{4,5})(\d{4})/,'+$1 ($2) $3-$4'):null;
+  if(d.conectado){
+    pill.textContent='CONECTADO';pill.className='pill';
+    pil2.textContent='WhatsApp conectado';pil2.className='pill';
+    tit.textContent='Número conectado'+(d.nome_conta?' — '+d.nome_conta:'');
+    est.textContent='Conectado: '+(num||'')+' · sessão ativa, robô pronto pra postar';
+    $('#btnDesconectar').style.display='';
+    if(timerCx){clearInterval(timerCx);timerCx=null}
+  }else if(d.status==='conectando'){
+    pill.textContent='CONECTANDO';pill.className='pill warn';
+    pil2.textContent='WhatsApp conectando…';pil2.className='pill warn';
+    tit.textContent='Aguardando você completar a conexão';
+    est.textContent='Digite o código no WhatsApp do chip (ou escaneie o QR). Confira aqui de novo em instantes.';
+    $('#btnDesconectar').style.display='';
+    if(!timerCx){timerCx=setInterval(atualizarCx,5000)}
+  }else{
+    pill.textContent=d.status==='erro'?'ERRO':'DESCONECTADO';pill.className='pill off';
+    pil2.textContent='WhatsApp não conectado';pil2.className='pill off';
+    tit.textContent='Nenhum número conectado';
+    est.textContent='Conecta por código de 8 dígitos — igual nos outros sistemas, sem apontar a câmera pro próprio celular';
+    $('#btnDesconectar').style.display='none';
+    if(timerCx){clearInterval(timerCx);timerCx=null}
+  }
+}
+async function atualizarCx(){
+  if(!TOKEN)return;
+  atualizarTelegram();
+  try{const d=await api('conexao-status',dadosCx());if(d.ok)aplicarCx(d);else toast(d.erro||'Não deu pra conferir a conexão')}catch(e){}
+}
+async function atualizarTelegram(){
+  if(!TOKEN)return;
+  const po=$('#tgPillOuvido'),pf=$('#tgPillFontes'),tx=$('#tgFontesTxt');
+  if(!po)return;
+  try{
+    const d=await api('telegram-status',dadosCx());
+    if(!d.ok){po.textContent='—';return}
+    if(d.ouvindo){po.textContent='LIGADO';po.className='pill ok'}
+    else{po.textContent='DESLIGADO';po.className='pill off'}
+    const nomes=(d.fontes||[]).map(f=>f.nome).join(', ');
+    if(d.total_fontes>0){pf.textContent='ATIVO';pf.className='pill ok';tx.textContent=d.total_fontes+' canal(is) em escuta'+(nomes?': '+nomes:'')}
+    else{pf.textContent='SEM FONTES';pf.className='pill warn';tx.textContent='Nenhum canal cadastrado ainda — a equipe do GarimpoBot liga as fontes pra você'}
+  }catch(e){}
+}
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+async function carregarGrupos(){
+  if(!TOKEN)return;
+  const box=$('#grLista'),pill=$('#grPill');
+  if(!box)return;
+  box.innerHTML='<p class="sub">Procurando os grupos do número do robô…</p>';
+  try{
+    const d=await api('grupos-detectados',dadosCx());
+    if(!d.ok){pill.textContent='—';pill.className='pill warn';box.innerHTML='<p class="sub">'+escHtml(d.erro||'Não deu pra listar os grupos agora')+'</p>';return}
+    if(!d.conectado){pill.textContent='DESCONECTADO';pill.className='pill off';box.innerHTML='<p class="sub">Conecta o WhatsApp na aba Conexão — aí os grupos onde o número do robô está aparecem aqui.</p>';return}
+    pill.textContent='CONECTADO';pill.className='pill ok';
+    if(!d.grupos.length){box.innerHTML='<p class="sub">O número do robô ainda não está em nenhum grupo. Coloca ele num grupo e toca em Atualizar lista.</p>';return}
+    box.innerHTML=d.grupos.map(g=>
+      '<div class="linha"><div class="cresce"><b>'+escHtml(g.nome)+'</b><small>'+(g.membros!=null?g.membros+' membros':'grupo do WhatsApp')+'</small></div>'+
+      (g.ativo?'<span class="pill ok">POSTA AQUI</span><button class="btn perigo" data-grp-off="'+escHtml(g.jid)+'">Desligar</button>'
+              :'<button class="btn" data-grp-on="'+escHtml(g.jid)+'" data-grp-nome="'+escHtml(g.nome)+'">Ligar o robô aqui</button>')+'</div>').join('');
+    box.querySelectorAll('[data-grp-on]').forEach(b=>b.addEventListener('click',()=>grupoAcao(b.getAttribute('data-grp-on'),b.getAttribute('data-grp-nome'),true)));
+    box.querySelectorAll('[data-grp-off]').forEach(b=>b.addEventListener('click',()=>grupoAcao(b.getAttribute('data-grp-off'),'',false)));
+  }catch(e){box.innerHTML='<p class="sub">Sem conexão agora — tenta de novo</p>'}
+}
+async function grupoAcao(jid,nome,ativar){
+  try{
+    const d=await api('grupo-ativar',dadosCx({jid:jid,nome:nome,ativar:ativar}));
+    if(d.ok){toast(ativar?'Robô ligado neste grupo':'Robô desligado neste grupo');carregarGrupos()}
+    else toast(d.erro||'Não deu agora')
+  }catch(e){toast('Sem conexão agora')}
+}
+$('#btnGruposAtualizar').addEventListener('click',carregarGrupos);
+$('#btnQr').addEventListener('click',async()=>{
+  const c=$('#caixaQr');$('#caixaCodigo').style.display='none';
+  const abrindo=c.style.display==='none';c.style.display=abrindo?'block':'none';
+  if(!abrindo)return;
+  $('#qr').innerHTML='<span class="sub">Gerando o QR…</span>';
+  try{const d=await api('conectar-qr',dadosCx());
+    if(d.ok&&d.qr&&d.qr.data){$('#qr').innerHTML='<img src="data:'+(d.qr.mimetype||'image/png')+';base64,'+d.qr.data+'" alt="QR Code do WhatsApp" style="width:100%;height:100%;object-fit:contain">';atualizarCx()}
+    else{$('#qr').innerHTML='<span class="sub">'+(d.erro||'Não gerou o QR agora — tenta de novo')+'</span>'}
+  }catch(e){$('#qr').innerHTML='<span class="sub">Sem conexão agora — tenta de novo</span>'}
+});
+$('#btnCodigo').addEventListener('click',()=>{const c=$('#caixaCodigo');$('#caixaQr').style.display='none';c.style.display=c.style.display==='none'?'block':'none';const inp=$('#inpChip');if(inp)inp.focus()});
+$('#btnGerarCodigo').addEventListener('click',async()=>{
+  const tel=($('#inpChip').value||'').trim();
+  if(tel.replace(/\D/g,'').length<10){toast('Digita o número do chip com DDD primeiro');$('#inpChip').focus();return}
+  const b=$('#btnGerarCodigo');b.disabled=true;b.textContent='Gerando no WhatsApp…';
+  try{const d=await api('conectar-codigo',dadosCx({telefone:tel}));
+    if(d.ok){$('#codigoPareamento').textContent=String(d.codigo).replace('-',' ');toast('Código gerado de verdade — digite no WhatsApp do chip');atualizarCx()}
+    else toast(d.erro||'Não gerou o código agora')
+  }catch(e){toast('Sem conexão agora — tenta de novo')}
+  b.disabled=false;b.textContent='Gerar meu código';
+});
+const bAv=$('#btnAvisos');if(bAv)bAv.addEventListener('click',async()=>{const v=$('#avNumero').value;try{const d=await api('salvar-avisos',dadosCx({numero:v}));if(d&&d.ok){$('#avAtual').textContent='Avisos vão pra '+d.numero;toast('Número dos avisos salvo ✓')}else toast('Confere o número: DDD + número (com 55 na frente, se tiver)')}catch(e){toast('Não deu pra salvar agora')}});
+$('#btnDesconectar').addEventListener('click',async()=>{
+  try{const d=await api('desconectar',dadosCx());if(d.ok){toast('Número desconectado');$('#codigoPareamento').textContent='–––– ––––';atualizarCx()}else toast(d.erro||'Não desconectou')}catch(e){toast('Sem conexão agora')}
+});
+/* Robô DE VERDADE — tudo salva em tenant_rules via salvar-regras */
+let REGRAS=null;
+async function salvarRegras(parcial,silencioso){
+  try{const d=await api('salvar-regras',dadosCx(parcial));
+    if(d.ok){REGRAS=d.regras;if(!silencioso)toast('Salvo de verdade — o robô já obedece ✓');atualizarStatusRobo();return true}
+    toast(d.erro||'Não salvou');return false
+  }catch(e){toast('Sem conexão agora');return false}
+}
+async function atualizarStatusRobo(){
+  const tit=$('#titRobo'),txt=$('#txtRobo'),st=$('#statusRobo'),dot=$('#dotRobo'),sw=$('#swRobo');
+  if(!tit||!REGRAS)return;
+  const ligado=!!REGRAS.robo_ligado;
+  if(sw)sw.checked=ligado;
+  $('#btnPausar').disabled=!ligado;$('#btnVoltar').disabled=ligado;
+  if(!ligado){tit.textContent='Robô desligado';st.textContent='Robô desligado';dot.className='dot off';txt.textContent='Liga a chavinha pra ele garimpar e postar sozinho';return}
+  let conectado=false,gruposAtivos=0;
+  try{const cx=await api('conexao-status',dadosCx());conectado=!!(cx&&cx.conectado)}catch(e){}
+  try{const gr=await api('grupos-detectados',dadosCx());if(gr&&gr.conectado)gruposAtivos=(gr.grupos||[]).filter(g=>g.ativo).length}catch(e){}
+  if(conectado&&gruposAtivos>0){tit.textContent='Robô ativo e postando';st.textContent='Robô ativo';dot.className='dot';txt.textContent='Garimpando nas fontes e postando no seu grupo'}
+  else if(!conectado){tit.textContent='Robô ligado — aguardando o chip';st.textContent='Robô aguardando o chip';dot.className='dot warn';txt.textContent='A chavinha já está ligada — falta o WhatsApp do chip conectar (aba Conexão)'}
+  else{tit.textContent='Robô ligado — aguardando um grupo';st.textContent='Robô aguardando um grupo';dot.className='dot warn';txt.textContent='Chip conectado — falta ligar o robô num grupo (aba Grupos)'}
+}
+$('#swRobo').addEventListener('change',e=>salvarRegras({robo_ligado:e.target.checked}));
+$('#btnPausar').addEventListener('click',()=>salvarRegras({robo_ligado:false}));
+$('#btnVoltar').addEventListener('click',()=>salvarRegras({robo_ligado:true}));
+function lojasMarcadas(){return $$('.swLoja[data-loja]').filter(s=>s.checked).map(s=>s.dataset.loja)}
+$$('.swLoja[data-loja]').forEach(s=>s.addEventListener('change',()=>salvarRegras({lojas_ativas:lojasMarcadas()})));
+const liga=(r,v,f)=>{const el=$(r);if(el)el.addEventListener('input',()=>$(v).textContent=f(el.value))};
+liga('#rPosts','#vPosts',x=>x);liga('#rDesc','#vDesc',x=>x+'%');liga('#rNota','#vNota',x=>(+x).toFixed(1));
+function ligaSalvar(sel,campo,conv){const el=$(sel);if(!el)return;el.addEventListener('change',()=>{const p={};p[campo]=conv(el.value);salvarRegras(p)})}
+ligaSalvar('#rPosts','posts_por_dia',x=>parseInt(x));
+ligaSalvar('#rDesc','desconto_min_pct',x=>parseFloat(x));
+ligaSalvar('#rNota','avaliacao_minima',x=>parseFloat(x));
+$$('#horarios .chip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');salvarRegras({horarios:$$('#horarios .chip.on').map(x=>x.textContent.trim())},true).then(ok=>{if(ok)toast('Horários salvos ✓')})}));
+/* Garimpos DE VERDADE — endpoint /garimpos */
+let G=[];
+const fmt=v=>v==null?'':v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const LOJAS={shopee:['Shopee','#ee4d2d','SH'],mercado_livre:['Mercado Livre','#b7a100','ML'],amazon:['Amazon','#ff9900','AM'],aliexpress:['AliExpress','#e62e04','AL']};
+const MOTIVOS={sem_conversao:'não deu pra montar com o seu link de afiliada',conversor_api_pendente:'a conversão dessa loja ainda não está ligada',conversor_sessao_pendente:'a conversão dessa loja ainda não está ligada',desconto_baixo:'desconto abaixo do mínimo da sua regra',nota_baixa:'nota abaixo do corte da sua regra',avaliacao_baixa:'avaliação do produto abaixo da sua regra',fora_do_nicho:'fora das categorias da sua lojinha',fora_loja:'essa loja está desligada nas suas regras',sem_produto:'não deu pra identificar o produto ou o preço',sem_comissao:'produto sem comissão',duplicada:'a mesma oferta já entrou hoje',em_quarentena:'fonte em observação',preco_subiu:'o preço subiu antes de postar'};
+function stDe(o){return o.estado==='postada'?'postada':(o.estado==='na_fila'||o.estado==='aprovada'||o.estado==='descoberta')?'fila':'descartada'}
+function infoDe(o){
+  if(o.estado==='postada')return 'postada às '+horaCurta(o.postada_em||o.criada_em);
+  if(stDe(o)==='fila')return o.programada_para?('na fila — posta por volta das '+horaCurta(o.programada_para)):'na fila pra postar';
+  return 'descartada: '+(MOTIVOS[o.motivo]||'não aproveitada');
+}
+function linhaOferta(o){
+  const st=stDe(o);const lj=LOJAS[o.loja]||[o.loja,'#888','··'];
+  const pill=st==='postada'?'<span class="pill">POSTADA</span>':st==='fila'?'<span class="pill warn">NA FILA</span>':'<span class="pill off">DESCARTADA</span>';
+  const preco=o.preco==null?'':('<div class="preco">'+(o.preco_de&&o.preco_de>o.preco?('<s>'+fmt(o.preco_de)+'</s> '):'')+'<b>'+fmt(o.preco)+'</b></div>');
+  const bug=o.bug?' <span class="pill" style="background:#f0b429;color:#4a3200">🚨 BUG DE PREÇO</span>':'';
+  const acoes=st==='postada'?'':'<div class="acoes"><button class="btn mini" onclick="postarAgora(\''+o.id+'\',this)">⚡ Postar agora</button><button class="btn claro mini" onclick="copiarOferta(\''+o.id+'\',this)">📋 Copiar texto</button></div>';
+  return '<div class="oferta"><div class="mini" style="background:'+lj[1]+'">'+lj[2]+'</div><div class="cresce"><b>'+escHtml(o.titulo||'')+'</b>'+bug+'<small>'+lj[0]+(o.score!=null?(' · <span class="nota">nota '+o.score.toFixed(1)+'</span>'):'')+'</small>'+preco+'<small>'+infoDe(o)+'</small>'+acoes+'</div>'+pill+'</div>';
+}
+function renderG(f){
+  const lista=G.filter(o=>f==='todas'||stDe(o)===f);
+  $('#listaGarimpo').innerHTML=lista.map(linhaOferta).join('')||'<p style="color:var(--suave);font-size:.88rem;padding:.6rem 0">'+(G.length?'Nada neste filtro por enquanto.':'O robô ainda não avaliou nenhuma oferta hoje — ele garimpa a cada 30 minutos.')+'</p>';
+}
+function renderCurva(){
+  const box=$('#gCurva');if(!box)return;
+  const ativas=G.filter(o=>stDe(o)!=='postada');
+  const bugs=ativas.filter(o=>o.bug);
+  const tops=ativas.filter(o=>!o.bug&&o.score!=null).sort((a,b)=>b.score-a.score).slice(0,3);
+  const lista=bugs.concat(tops).slice(0,6);
+  if(!lista.length){box.style.display='none';return}
+  box.style.display='';
+  $('#gCurvaLista').innerHTML=lista.map(linhaOferta).join('');
+}
+const ERROS_POST={sem_conversao:'essa oferta ainda não dá pra montar com o seu link dessa loja',conversor_api_pendente:'a conversão dessa loja ainda não está ligada',conversor_sessao_pendente:'a conversão dessa loja ainda não está ligada',ja_postada:'essa oferta já foi postada',sem_grupo:'nenhum grupo ligado — liga um na aba Grupos',sem_preco:'essa oferta está sem preço agora',falha_envio:'não consegui enviar agora — tenta de novo',oferta_nao_encontrada:'oferta não encontrada'};
+async function postarAgora(id,btn){
+  if(btn){btn.disabled=true;btn.textContent='Postando…'}
+  try{const d=await api('postar-agora',dadosCx({oferta_id:id}));
+    if(d&&d.ok){toast('Postada no seu grupo ✓');carregarGarimpos()}
+    else toast(ERROS_POST[d&&d.erro]||'não deu pra postar agora');
+  }catch(e){toast('não deu pra postar agora')}
+  if(btn){btn.disabled=false;btn.textContent='⚡ Postar agora'}
+}
+async function copiarOferta(id,btn){
+  try{const d=await api('postar-agora',dadosCx({oferta_id:id,montar:true}));
+    if(d&&d.ok&&d.mensagem){try{await navigator.clipboard.writeText(d.mensagem)}catch(e){const ta=document.createElement('textarea');ta.value=d.mensagem;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}toast('Texto copiado — cola onde quiser 💛')}
+    else toast(ERROS_POST[d&&d.erro]||'não deu pra montar o texto');
+  }catch(e){toast('não deu pra montar o texto')}
+}
+async function carregarGarimpos(){
+  if(!TOKEN)return;
+  try{const d=await api('garimpos',dadosCx());if(!d||!d.ok)return;
+    G=d.ofertas||[];
+    $('#gEncontradas').textContent=d.encontradas;$('#gPostadas').textContent=d.postadas;$('#gFila').textContent=d.na_fila;
+    const on=$('#filtroGarimpo .chip.on');renderG(on?on.dataset.f:'todas');renderCurva();
+  }catch(e){}
+}
+$$('#filtroGarimpo .chip').forEach(c=>c.addEventListener('click',()=>{$$('#filtroGarimpo .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');renderG(c.dataset.f)}));
+/* Perfil */
+function iniciais(nome){return nome.trim().split(/\s+/).filter(Boolean).slice(-2).map(p=>p[0]).join('').toUpperCase().slice(0,2)||'CG'}
+$('#inpNome').addEventListener('input',e=>{const n=e.target.value||'Sua lojinha';$('#nomeTopo').textContent=n;const ini=iniciais(n);$('#iniciais').textContent=ini;$('#iniciaisPerfil').textContent=ini});
+$('#inpFoto').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);$('#logoTopo').innerHTML='<img src="'+url+'">';$('#logoPerfil').innerHTML='<img src="'+url+'">';toast('Foto aplicada na lojinha')});
+$$('#cores .cor').forEach(c=>c.addEventListener('click',()=>{$$('#cores .cor').forEach(x=>x.classList.remove('on'));c.classList.add('on');document.documentElement.style.setProperty('--cor',c.dataset.cor);document.documentElement.style.setProperty('--cor-esc',c.dataset.esc);COR_ATUAL=c.dataset.cor;toast('Cor da marca aplicada')}));
+$$('#catsPerfil .chip').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on')));
+/* Dashboard: saudação e data de verdade */
+(function(){const agora=new Date();$('#dashData').textContent=agora.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})})();
+$$('[data-go]').forEach(b=>b.addEventListener('click',()=>{const alvo=document.querySelector('nav button[data-tela="'+b.dataset.go+'"]');if(alvo)alvo.click()}));
+</script>
+<script>
+/* ===== GarimpoBot — acesso REAL (cadastro/login/perfil no banco) ===== */
+/* ===== GarimpoBot — acesso REAL (cadastro/login/perfil no banco) ===== */
+const API='https://n8n.jrcomunicacaointeligente.online/webhook/garimpobot/';
+let TOKEN=localStorage.getItem('gb_token')||'';
+let DADOS=null, VENDO=null, COR_ATUAL='#e8547a';
+async function api(rota,dados){const r=await fetch(API+rota,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(dados||{})});return r.json()}
+function escurecer(hex){const n=parseInt(hex.slice(1),16);const f=v=>Math.max(0,Math.round(v*0.74));return '#'+[f(n>>16&255),f(n>>8&255),f(n&255)].map(v=>v.toString(16).padStart(2,'0')).join('')}
+function fraseSaudacao(nome){const hh=new Date().getHours();return (hh<12?'Bom dia':hh<18?'Boa tarde':'Boa noite')+', '+nome}
+function mostrarErroLogin(msg){const e=$('#loginErro');e.textContent=msg;e.style.display='block'}
+let MODO='entrar';
+function setModo(m){
+  MODO=m;$('#loginErro').style.display='none';
+  $('#campoNome').style.display=(m==='cadastrar')?'block':'none';
+  $('#btnEntrar').textContent=(m==='entrar')?'Entrar no meu painel':(m==='cadastrar')?'Criar minha lojinha':'Criar minha senha e entrar';
+  $('#loginModoTxt').textContent=(m==='entrar')?'Entre com seu acesso.':(m==='cadastrar')?'Crie sua conta — sua lojinha nasce na hora, com o robô esperando você ativar.':'Sua conta já foi criada pela equipe? Defina sua senha agora e entre.';
+  $('#linkCadastro').style.display=(m==='entrar')?'inline':'none';
+  $('#linkPrimeiro').style.display=(m==='entrar')?'inline':'none';
+  $('#linkVoltar').style.display=(m==='entrar')?'none':'inline';
+  $('#loginSenha').autocomplete=(m==='entrar')?'current-password':'new-password';
+}
+$('#linkCadastro').addEventListener('click',()=>setModo('cadastrar'));
+$('#linkPrimeiro').addEventListener('click',()=>setModo('primeiro'));
+$('#linkVoltar').addEventListener('click',()=>setModo('entrar'));
+async function fluxoAcesso(){
+  const email=($('#loginEmail').value||'').trim(), senha=$('#loginSenha').value||'';
+  if(!email||!senha){mostrarErroLogin('Preenche e-mail e senha.');return}
+  $('#btnEntrar').disabled=true;
+  try{
+    let d;
+    if(MODO==='cadastrar'){const nome=($('#cadNome').value||'').trim();if(nome.length<2){mostrarErroLogin('Me diz seu nome — é por ele que o painel vai te chamar.');$('#btnEntrar').disabled=false;return}d=await api('cadastrar',{nome,email,senha})}
+    else if(MODO==='primeiro'){d=await api('primeiro-acesso',{email,senha})}
+    else{d=await api('entrar',{email,senha})}
+    if(d.ok&&d.pendente&&!d.token){mostrarPendente(d.mensagem);$('#btnEntrar').disabled=false;return}
+    if(!d.ok){if(d.codigo==='pendente'){mostrarPendente(d.erro);$('#btnEntrar').disabled=false;return}mostrarErroLogin(d.erro||'Algo não deu certo.');if(d.codigo==='primeiro_acesso')setModo('primeiro');$('#btnEntrar').disabled=false;return}
+    TOKEN=d.token;localStorage.setItem('gb_token',TOKEN);aplicar(d);
+  }catch(e){mostrarErroLogin('Sem conexão com o servidor agora — tenta de novo em instantes.');$('#btnEntrar').disabled=false}
+}
+$('#btnEntrar').addEventListener('click',fluxoAcesso);
+$('#loginSenha').addEventListener('keydown',e=>{if(e.key==='Enter')fluxoAcesso()});
+function aplicar(d){
+  DADOS=d;const u=d.usuario,L=d.lojinha;
+  $('#saudacao').textContent=fraseSaudacao(u.primeiro_nome);
+  if(!$('#btnSair')){const b=document.createElement('button');b.className='btn claro';b.id='btnSair';b.textContent='Sair';b.style.marginLeft='.5rem';b.addEventListener('click',()=>{localStorage.removeItem('gb_token');location.reload()});$('#pillNumero').after(b)}
+  if(L){
+    COR_ATUAL=L.cor_primaria||COR_ATUAL;
+    document.documentElement.style.setProperty('--cor',COR_ATUAL);
+    document.documentElement.style.setProperty('--cor-esc',escurecer(COR_ATUAL));
+    $$('#cores .cor').forEach(c=>c.classList.toggle('on',c.dataset.cor.toLowerCase()===COR_ATUAL.toLowerCase()));
+    document.title=L.nome_loja+' — GarimpoBot';
+    $('#nomeTopo').textContent=L.nome_loja;
+    const ini=iniciais(L.nome_loja);$('#iniciais').textContent=ini;$('#iniciaisPerfil').textContent=ini;
+    $('#inpNome').value=L.nome_loja;$('#inpFrase').value=L.bio||'';
+    $('#inpInstagram').value=L.instagram||'';
+    $$('#catsPerfil .chip').forEach(ch=>ch.classList.toggle('on',(L.categorias||[]).includes(ch.textContent.trim())));
+    const cg=L.codigos||{};
+    $('#codShopee').value=cg['shopee:api_app_id']||'';$('#codML').value=cg['mercado_livre:link_base']||'';$('#codAmazon').value=cg['amazon:tag']||'';
+    const rg=L.regras||{};
+    if(rg.posts_por_dia!=null){$('#rPosts').value=rg.posts_por_dia;$('#vPosts').textContent=rg.posts_por_dia}
+    if(rg.desconto_min_pct!=null){$('#rDesc').value=rg.desconto_min_pct;$('#vDesc').textContent=rg.desconto_min_pct+'%'}
+    if(rg.avaliacao_minima!=null){$('#rNota').value=rg.avaliacao_minima;$('#vNota').textContent=(+rg.avaliacao_minima).toFixed(1)}
+    if(Array.isArray(rg.horarios)){const hs=rg.horarios.map(h=>String(h).slice(0,5));$$('#horarios .chip').forEach(c=>c.classList.toggle('on',hs.includes(c.textContent.trim())))}
+    REGRAS=rg;
+    const swR=$('#swRobo');if(swR)swR.checked=!!rg.robo_ligado;
+    $$('.swLoja[data-loja]').forEach(s=>{s.checked=(rg.lojas_ativas||[]).includes(s.dataset.loja)});
+    if(typeof atualizarStatusRobo==='function')atualizarStatusRobo();
+    if(typeof carregarInicio==='function')carregarInicio();
+    if(typeof atualizarCx==='function')atualizarCx();
+    const avN=$('#avNumero'),avA=$('#avAtual');
+    if(avN&&L.numero_avisos){avN.value=L.numero_avisos;if(avA)avA.textContent='Avisos vão pra '+L.numero_avisos}
+  }
+  if(!L&&u.admin){$('#nomeTopo').textContent='GarimpoBot — Admin'}
+  const minhaLojinha=!u.admin;
+  $('#inpNomePessoa').value=minhaLojinha?u.nome:(VENDO?(d.lojinha?d.lojinha.nome:''):'');
+  $('#inpNomePessoa').readOnly=!!VENDO;
+  if(u.admin&&Array.isArray(d.lojinhas)){
+    const card=$('#cardMaster');card.style.display=d.lojinhas.length?'block':'none';
+    $('#listaLojinhas').innerHTML=d.lojinhas.map(l=>'<div class="linha"><div class="cresce"><b>'+l.nome_loja+'</b><small>'+(l.dona||'')+' · '+(l.email||'')+(l.ativo?'':' · inativa')+'</small></div>'+(VENDO===l.slug?'<span class="pill">VENDO</span>':'<button class="btn claro" data-ver="'+l.slug+'">Ver painel</button>')+'</div>').join('');
+    $$('#listaLojinhas [data-ver]').forEach(b=>b.addEventListener('click',async()=>{const dd=await api('eu',{token:TOKEN,tenant_slug:b.dataset.ver});if(dd.ok){VENDO=b.dataset.ver;aplicar(dd);toast('Você está vendo a '+dd.lojinha.nome_loja)}else toast(dd.erro||'Não deu pra abrir')}));
+  }
+  if(u.admin){$('#navAdmin').style.display='';carregarAdmin()}
+  $('#telaLogin').style.display='none';
+  $('#btnEntrar').disabled=false;
+}
+$('#btnSalvar').addEventListener('click',async()=>{
+  if(!TOKEN){toast('Entre de novo pra salvar');return}
+  const payload={token:TOKEN,tenant_slug:VENDO||undefined,
+    nome_loja:$('#inpNome').value,frase:$('#inpFrase').value,cor_hex:COR_ATUAL,instagram:$('#inpInstagram').value,
+    categorias:$$('#catsPerfil .chip.on').map(c=>c.textContent.trim()),
+    codigos:{shopee:$('#codShopee').value,mercadolivre:$('#codML').value,amazon:$('#codAmazon').value}};
+  if(!VENDO)payload.nome_pessoa=$('#inpNomePessoa').value;
+  try{const d=await api('salvar-perfil',payload);if(d.ok){aplicar(d);toast('Perfil salvo de verdade — tá no banco ✓')}else toast(d.erro||'Não salvou')}catch(e){toast('Sem conexão agora — tenta de novo')}
+});
+(async()=>{if(!TOKEN)return;try{const d=await api('eu',{token:TOKEN});if(d.ok)aplicar(d);else{localStorage.removeItem('gb_token');TOKEN='';if(d.codigo==='revogado'||d.codigo==='pendente')mostrarPendente(d.erro)}}catch(e){}})();
+
+/* ===== Início em tempo real (endpoint /inicio) ===== */
+function horaCurta(iso){try{return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}catch(e){return '—'}}
+async function carregarInicio(){
+  if(!TOKEN)return;
+  try{const d=await api('inicio',dadosCx());if(!d||!d.ok)return;
+    const f=$('#heroFrase');
+    if(!d.robo_ligado)f.textContent='Seu robô está desligado agora. Quando quiser, liga ele na aba Robô que ele volta a garimpar e postar sozinho.';
+    else if(!d.conectado)f.textContent='Falta conectar o chip do robô pra ele começar a postar — é rapidinho, na aba Conexão.';
+    else if(!d.grupo)f.textContent='Chip conectado! Agora falta ligar o robô no seu grupo, na aba Grupos.';
+    else f.textContent='Seu robô está trabalhando por você: hoje ele já avaliou '+d.garimpadas_hoje+' ofertas e postou '+d.postadas_hoje+' no grupo '+d.grupo.nome+'.';
+    $('#stPostadas').textContent=d.postadas_hoje;
+    $('#stMembros').textContent=(d.grupo&&d.grupo.membros!=null)?d.grupo.membros:'—';
+    $('#stProxima').textContent=d.proxima_em?horaCurta(d.proxima_em):'—';
+    $('#kPostadas').textContent=d.postadas_hoje;$('#kPostadasD').textContent='de '+d.garimpadas_hoje+' avaliadas hoje';
+    $('#kFila').textContent=d.na_fila;$('#kFilaD').textContent=d.na_fila?(d.proxima_em?('próxima às '+horaCurta(d.proxima_em)):'esperando o horário'):'nada esperando agora';
+    $('#kMembros').textContent=(d.grupo&&d.grupo.membros!=null)?d.grupo.membros:'—';$('#kMembrosD').textContent=d.grupo?('no grupo '+d.grupo.nome):'nenhum grupo ligado';
+    $('#kUltima').textContent=d.ultima?horaCurta(d.ultima.em):'—';$('#kUltimaD').textContent=d.ultima?d.ultima.titulo:'ainda sem postagens';
+    const pill=(id,ok)=>{const p=$(id);if(!p)return;p.className='pill '+(ok?'ok':'warn');p.textContent=ok?'PRONTO':'AGUARDANDO'};
+    pill('#ppGrupo',!!d.grupo);pill('#ppChip',!!d.conectado);pill('#ppCodigos',!!(d.tem_shopee||d.tem_ml));
+    if(d.grupo&&d.conectado&&(d.tem_shopee||d.tem_ml))$('#passosTitulo').textContent='Sua lojinha está no ar 🎉';
+    const m=$('#melhorTxt');if(m)m.textContent=d.melhor_hoje?('🏆 '+d.melhor_hoje.titulo+' — nota '+d.melhor_hoje.score+' no garimpo'):'Quando o robô postar, a oferta com a melhor nota do dia aparece aqui.';
+    const rp=$('#rsPostadas');if(rp)rp.textContent=d.postadas_semana;
+    const ra=$('#rsAvaliadas');if(ra)ra.textContent=d.avaliadas_semana;
+  }catch(e){}
+}
+setInterval(()=>{const t=$('#tela-inicio');if(t&&t.classList.contains('on')&&!document.hidden)carregarInicio()},60000);
+
+/* ===== GarimpoBot v12 — aprovação + aba Admin ===== */
+function mostrarPendente(msg){
+  $('#loginErro').style.display='none';
+  const p=$('#telaPendente');$('#pendenteMsg').textContent=msg||'Sua conta foi criada e está aguardando a aprovação do admin. Assim que ele aprovar, é só entrar com seu e-mail e senha.';
+  $('#telaLogin').style.display='none';p.style.display='flex';
+}
+$('#btnPendenteVoltar').addEventListener('click',()=>{$('#telaPendente').style.display='none';$('#telaLogin').style.display='flex';setModo('entrar')});
+/* Admin: carrega usuários + status do sistema */
+async function carregarAdmin(){
+  if(!TOKEN)return;
+  try{
+    const d=await api('admin-usuarios',{token:TOKEN});
+    if(!d.ok){toast(d.erro||'Sem acesso de admin');return}
+    const grupos={pendente:[],aprovado:[],revogado:[]};
+    d.usuarios.forEach(u=>{(grupos[u.status]||grupos.aprovado).push(u)});
+    const linha=(u,acoes)=>'<div class="linha"><div class="cresce"><b>'+u.nome+'</b><small>'+u.email+(u.nome_loja?' · '+u.nome_loja:'')+(u.papel==='admin'||u.papel==='master'?' · ADMIN':'')+(u.tem_senha?'':' · senha ainda não criada')+'</small></div>'+acoes+'</div>';
+    $('#admPendentes').innerHTML=grupos.pendente.length?grupos.pendente.map(u=>linha(u,'<button class="btn" data-aprovar="'+u.email+'">Aprovar</button> <button class="btn perigo" data-revogar="'+u.email+'">Revogar</button>')).join(''):'<p class="sub">Ninguém aguardando agora.</p>';
+    $('#admAprovados').innerHTML=grupos.aprovado.length?grupos.aprovado.map(u=>linha(u,(u.papel==='admin'||u.papel==='master')?'<span class="pill">ADMIN</span>':'<button class="btn perigo" data-revogar="'+u.email+'">Revogar</button>')).join(''):'<p class="sub">Nenhum usuário aprovado.</p>';
+    $('#admRevogados').innerHTML=grupos.revogado.length?grupos.revogado.map(u=>linha(u,'<button class="btn" data-aprovar="'+u.email+'">Reaprovar</button>')).join(''):'<p class="sub">Nenhum acesso revogado.</p>';
+    $$('#tela-admin [data-aprovar]').forEach(b=>b.addEventListener('click',()=>acaoAdmin('admin-aprovar',b.dataset.aprovar)));
+    $$('#tela-admin [data-revogar]').forEach(b=>b.addEventListener('click',()=>acaoAdmin('admin-revogar',b.dataset.revogar)));
+  }catch(e){toast('Sem conexão pra carregar o admin')}
+  try{
+    const s=await api('sistema-status',{token:TOKEN});
+    if(s.ok){const b=s.banco||{};$('#admStatus').innerHTML=
+      '<div class="linha"><div class="cresce"><b>Motor do sistema (worker)</b><small>Serviço interno na VPS — respondeu agora</small></div><span class="pill">NO AR</span></div>'+
+      '<div class="linha"><div class="cresce"><b>Banco de dados</b><small>'+(b.tenants??0)+' lojinhas · '+(b.produtos??0)+' produtos garimpados · '+(b.ofertas_funil??0)+' ofertas no funil · '+(b.posts??0)+' posts</small></div><span class="pill">OK</span></div>'+
+      '<div class="linha"><div class="cresce"><b>Usuários</b><small>'+((s.usuarios||{}).aprovado||0)+' aprovados · '+((s.usuarios||{}).pendente||0)+' pendentes · '+((s.usuarios||{}).revogado||0)+' revogados</small></div><span class="pill">OK</span></div>'+
+      '<div class="linha"><div class="cresce"><b>Conexões do robô (WhatsApp/Telegram)</b><small>As sessões ligam na fase do motor — chip por lojinha, pareamento por código</small></div><span class="pill warn">FASE DO MOTOR</span></div>'}
+  }catch(e){}
+}
+async function acaoAdmin(rota,email){
+  try{const d=await api(rota,{token:TOKEN,email});if(d.ok){toast(email+': '+d.status);carregarAdmin()}else toast(d.erro||'Não deu')}catch(e){toast('Sem conexão agora')}
+}
+$('#btnAdmInserir').addEventListener('click',async()=>{
+  const nome=($('#admNome').value||'').trim(),email=($('#admEmail').value||'').trim();
+  if(nome.length<2||!email.includes('@')){toast('Preenche nome e e-mail de quem você quer inserir');return}
+  try{const d=await api('admin-inserir',{token:TOKEN,nome,email});if(d.ok){$('#admNome').value='';$('#admEmail').value='';toast('Inserido e já aprovado: '+email+' — a pessoa cria a senha no Primeiro acesso');carregarAdmin()}else toast(d.erro||'Não inseriu')}catch(e){toast('Sem conexão agora')}
+});
+</script>
+
+<!-- ===== PWA v14: popup de instalação (só aparece depois do login) + ajuda ===== -->
+<div class="pwa-pop" id="pwaPop" style="display:none">
+  <img src="/icon-192.png" alt="GarimpoBot">
+  <div class="pwa-txt"><b>Instale o GarimpoBot 📱</b><small>Tenha sua lojinha na tela inicial do celular, abrindo direto como aplicativo.</small></div>
+  <div class="pwa-btns"><button class="btn" id="btnPwaInstalar">Instalar</button><button class="btn claro" id="btnPwaDepois">Agora não</button></div>
+</div>
+<div class="pwa-fundo" id="pwaAjuda" style="display:none">
+  <div class="pwa-caixa">
+    <h2>Como instalar o aplicativo</h2>
+    <h3>No Android (Chrome)</h3>
+    <p>Toque nos <b>três pontinhos ⋮</b> no canto do navegador e depois em <b>“Instalar app”</b> ou <b>“Adicionar à tela inicial”</b>. Pronto: o GarimpoBot vira um ícone na sua tela.</p>
+    <h3>No iPhone (Safari)</h3>
+    <p>Toque no botão <b>Compartilhar</b> (o quadradinho com a seta pra cima) e depois em <b>“Adicionar à Tela de Início”</b>.</p>
+    <button class="btn" id="btnPwaFechar">Entendi</button>
+  </div>
+</div>
+<script>
+/* ===== GarimpoBot v14 — PWA: service worker + instalação ===== */
+(function(){
+  var q=function(s){return document.querySelector(s)};
+  if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}
+  var promptGuardado=null;
+  function instalado(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true}
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();promptGuardado=e;atualizarPwa()});
+  window.addEventListener('appinstalled',function(){promptGuardado=null;fecharPopup();atualizarPwa();if(typeof toast==='function')toast('GarimpoBot instalado ✓ — ele tá na sua tela inicial')});
+  function atualizarPwa(){
+    var card=q('#cardInstalar');if(card)card.style.display=instalado()?'none':'';
+    if(instalado())fecharPopup();
+  }
+  function talvezPopup(){
+    if(instalado())return;
+    try{if(sessionStorage.getItem('gb_pwa_depois'))return}catch(e){}
+    setTimeout(function(){var p=q('#pwaPop');if(p&&!instalado()&&q('#telaLogin').style.display==='none')p.style.display='flex'},1400);
+  }
+  function fecharPopup(){var p=q('#pwaPop');if(p)p.style.display='none'}
+  function abrirAjuda(){fecharPopup();q('#pwaAjuda').style.display='flex'}
+  function fecharAjuda(){q('#pwaAjuda').style.display='none'}
+  async function instalar(){
+    if(promptGuardado){
+      promptGuardado.prompt();
+      try{var r=await promptGuardado.userChoice;if(r&&r.outcome==='accepted')fecharPopup()}catch(e){}
+      promptGuardado=null;
+    }else{abrirAjuda()}
+  }
+  var b1=q('#btnPwaInstalar');if(b1)b1.addEventListener('click',instalar);
+  var b2=q('#btnInstalarCard');if(b2)b2.addEventListener('click',instalar);
+  var b3=q('#btnPwaDepois');if(b3)b3.addEventListener('click',function(){try{sessionStorage.setItem('gb_pwa_depois','1')}catch(e){}fecharPopup()});
+  var b4=q('#btnPwaFechar');if(b4)b4.addEventListener('click',fecharAjuda);
+  var f=q('#pwaAjuda');if(f)f.addEventListener('click',function(e){if(e.target===f)fecharAjuda()});
+  /* O popup só existe depois do login: ele é chamado ao fim de aplicar(),
+     que é a porta de entrada do painel (login e sessão restaurada). */
+  if(typeof aplicar==='function'){
+    var aplicarOriginal=aplicar;
+    aplicar=function(d){
+      aplicarOriginal(d);
+      try{var m=document.querySelector('meta[name="theme-color"]');if(m&&typeof COR_ATUAL!=='undefined')m.setAttribute('content',COR_ATUAL)}catch(e){}
+      atualizarPwa();
+      talvezPopup();
+    };
+  }
+  atualizarPwa();
+})();
+</script>
+</body>
+</html>
