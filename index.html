@@ -432,7 +432,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
 /* Abas */
 $$('nav button').forEach(b=>b.addEventListener('click',()=>{
@@ -688,7 +688,7 @@ async function fluxoAcesso(){
     if(d.ok&&d.pendente&&!d.token){mostrarPendente(d.mensagem);$('#btnEntrar').disabled=false;return}
     if(!d.ok){if(d.codigo==='pendente'){mostrarPendente(d.erro);$('#btnEntrar').disabled=false;return}mostrarErroLogin(d.erro||'Algo não deu certo.');if(d.codigo==='primeiro_acesso')setModo('primeiro');$('#btnEntrar').disabled=false;return}
     TOKEN=d.token;localStorage.setItem('gb_token',TOKEN);aplicar(d);
-  }catch(e){mostrarErroLogin('Sem conexão com o servidor agora — tenta de novo em instantes.');$('#btnEntrar').disabled=false}
+  }catch(e){console.error('fluxoAcesso:',e);mostrarErroLogin('Sem conexão com o servidor agora — tenta de novo em instantes.');$('#btnEntrar').disabled=false}
 }
 $('#btnEntrar').addEventListener('click',fluxoAcesso);
 $('#loginSenha').addEventListener('keydown',e=>{if(e.key==='Enter')fluxoAcesso()});
