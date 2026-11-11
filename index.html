@@ -295,9 +295,9 @@
     <div class="card">
       <h2>O garimpo de hoje</h2>
       <div class="nums" style="margin:.5rem 0">
-        <div class="num"><b>0</b><span>encontradas</span></div>
-        <div class="num"><b>0</b><span>postadas</span></div>
-        <div class="num"><b>0</b><span>na fila</span></div>
+        <div class="num"><b id="gEncontradas">–</b><span>encontradas</span></div>
+        <div class="num"><b id="gPostadas">–</b><span>postadas</span></div>
+        <div class="num"><b id="gFila">–</b><span>na fila</span></div>
       </div>
       <div class="chips" id="filtroGarimpo">
         <button class="chip on" data-f="todas">Todas</button>
@@ -397,6 +397,7 @@ $$('nav button').forEach(b=>b.addEventListener('click',()=>{
   if(b.dataset.tela==='conexao')atualizarCx();
   if(b.dataset.tela==='grupos'){carregarGrupos();if(typeof carregarInicio==='function')carregarInicio()}
   if(b.dataset.tela==='inicio'&&typeof carregarInicio==='function')carregarInicio();
+  if(b.dataset.tela==='garimpos'&&typeof carregarGarimpos==='function')carregarGarimpos();
   window.scrollTo({top:0});
 }));
 /* Conexão de verdade — WAHA via fachada (igual ao Gestor Ultra) */
@@ -533,17 +534,35 @@ ligaSalvar('#rPosts','posts_por_dia',x=>parseInt(x));
 ligaSalvar('#rDesc','desconto_min_pct',x=>parseFloat(x));
 ligaSalvar('#rNota','avaliacao_minima',x=>parseFloat(x));
 $$('#horarios .chip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');salvarRegras({horarios:$$('#horarios .chip.on').map(x=>x.textContent.trim())},true).then(ok=>{if(ok)toast('Horários salvos ✓')})}));
-/* Garimpos */
-const G=[];
-const fmt=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+/* Garimpos DE VERDADE — endpoint /garimpos */
+let G=[];
+const fmt=v=>v==null?'':v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const LOJAS={shopee:['Shopee','#ee4d2d','SH'],mercado_livre:['Mercado Livre','#b7a100','ML'],amazon:['Amazon','#ff9900','AM'],aliexpress:['AliExpress','#e62e04','AL']};
+const MOTIVOS={sem_conversao:'não deu pra montar com o seu link de afiliada',conversor_api_pendente:'a conversão dessa loja ainda não está ligada',conversor_sessao_pendente:'a conversão dessa loja ainda não está ligada',desconto_baixo:'desconto abaixo do mínimo da sua regra',nota_baixa:'nota abaixo do corte da sua regra',avaliacao_baixa:'avaliação do produto abaixo da sua regra',fora_do_nicho:'fora das categorias da sua lojinha',fora_loja:'essa loja está desligada nas suas regras',sem_produto:'não deu pra identificar o produto ou o preço',sem_comissao:'produto sem comissão',duplicada:'a mesma oferta já entrou hoje',em_quarentena:'fonte em observação',preco_subiu:'o preço subiu antes de postar'};
+function stDe(o){return o.estado==='postada'?'postada':(o.estado==='na_fila'||o.estado==='aprovada'||o.estado==='descoberta')?'fila':'descartada'}
+function infoDe(o){
+  if(o.estado==='postada')return 'postada às '+horaCurta(o.postada_em||o.criada_em);
+  if(stDe(o)==='fila')return o.programada_para?('na fila — posta por volta das '+horaCurta(o.programada_para)):'na fila pra postar';
+  return 'descartada: '+(MOTIVOS[o.motivo]||'não aproveitada');
+}
 function renderG(f){
-  $('#listaGarimpo').innerHTML=G.filter(o=>f==='todas'||o.st===f).map(o=>{
-    const pill=o.st==='postada'?'<span class="pill">POSTADA</span>':o.st==='fila'?'<span class="pill warn">NA FILA</span>':'<span class="pill off">DESCARTADA</span>';
-    return `<div class="oferta"><div class="mini" style="background:${o.cor}">${o.curto}</div><div class="cresce"><b>${o.t}</b><small>${o.loja} · <span class="nota">nota ${o.nota.toFixed(1)}</span></small><div class="preco"><s>${fmt(o.de)}</s> <b>${fmt(o.por)}</b></div><small>${o.info}</small></div>${pill}</div>`;
-  }).join('')||'<p style="color:var(--suave);font-size:.88rem;padding:.6rem 0">O robô ainda não garimpou nada — quando ele ativar, as ofertas aparecem aqui.</p>';
+  const lista=G.filter(o=>f==='todas'||stDe(o)===f);
+  $('#listaGarimpo').innerHTML=lista.map(o=>{
+    const st=stDe(o);const lj=LOJAS[o.loja]||[o.loja,'#888','··'];
+    const pill=st==='postada'?'<span class="pill">POSTADA</span>':st==='fila'?'<span class="pill warn">NA FILA</span>':'<span class="pill off">DESCARTADA</span>';
+    const preco=o.preco==null?'':('<div class="preco">'+(o.preco_de&&o.preco_de>o.preco?('<s>'+fmt(o.preco_de)+'</s> '):'')+'<b>'+fmt(o.preco)+'</b></div>');
+    return '<div class="oferta"><div class="mini" style="background:'+lj[1]+'">'+lj[2]+'</div><div class="cresce"><b>'+escHtml(o.titulo||'')+'</b><small>'+lj[0]+(o.score!=null?(' · <span class="nota">nota '+o.score.toFixed(1)+'</span>'):'')+'</small>'+preco+'<small>'+infoDe(o)+'</small></div>'+pill+'</div>';
+  }).join('')||'<p style="color:var(--suave);font-size:.88rem;padding:.6rem 0">'+(G.length?'Nada neste filtro por enquanto.':'O robô ainda não avaliou nenhuma oferta hoje — ele garimpa a cada 30 minutos.')+'</p>';
+}
+async function carregarGarimpos(){
+  if(!TOKEN)return;
+  try{const d=await api('garimpos',dadosCx());if(!d||!d.ok)return;
+    G=d.ofertas||[];
+    $('#gEncontradas').textContent=d.encontradas;$('#gPostadas').textContent=d.postadas;$('#gFila').textContent=d.na_fila;
+    const on=$('#filtroGarimpo .chip.on');renderG(on?on.dataset.f:'todas');
+  }catch(e){}
 }
 $$('#filtroGarimpo .chip').forEach(c=>c.addEventListener('click',()=>{$$('#filtroGarimpo .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');renderG(c.dataset.f)}));
-renderG('todas');
 /* Perfil */
 function iniciais(nome){return nome.trim().split(/\s+/).filter(Boolean).slice(-2).map(p=>p[0]).join('').toUpperCase().slice(0,2)||'CG'}
 $('#inpNome').addEventListener('input',e=>{const n=e.target.value||'Sua lojinha';$('#nomeTopo').textContent=n;const ini=iniciais(n);$('#iniciais').textContent=ini;$('#iniciaisPerfil').textContent=ini});
