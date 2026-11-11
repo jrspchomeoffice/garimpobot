@@ -374,8 +374,13 @@
         <div class="cor" data-cor="#4aa3e8" data-esc="#2f77b8" style="background:#4aa3e8"></div>
         <div class="cor" data-cor="#f0762b" data-esc="#c2571a" style="background:#f0762b"></div>
       </div>
-      <label class="rot">O que você quer vender</label>
+      <button class="btn" id="btnSalvarDados" style="width:100%;margin-top:.7rem">Salvar dados</button>
+    </div>
+    <div class="card">
+      <h2>O que você quer vender</h2>
+      <p class="sub">Liga e desliga as categorias — o robô só garimpa o que estiver ligado.</p>
       <div class="chips" id="catsPerfil" style="margin:.3rem 0 .2rem"></div>
+      <button class="btn" id="btnAplicarCats" style="width:100%;margin-top:.5rem">Aplicar categorias</button>
     </div>
     <div class="card">
       <h2>Seus códigos de afiliada</h2>
@@ -388,7 +393,7 @@
       <input type="text" id="codAmazon" value="" placeholder="sua tag da Amazon (se tiver)">
       <label class="rot">Seu Instagram</label>
       <input type="text" id="inpInstagram" value="" placeholder="@seuinstagram">
-      <button class="btn" id="btnSalvar" style="width:100%">Salvar o perfil</button>
+      <button class="btn" id="btnSalvarCodigos" style="width:100%">Salvar códigos</button>
     </div>
   </section>
 </div>
@@ -703,15 +708,29 @@ function aplicar(d){
   $('#telaLogin').style.display='none';
   $('#btnEntrar').disabled=false;
 }
-$('#btnSalvar').addEventListener('click',async()=>{
+async function salvarTrecho(payload,btn,okMsg){
   if(!TOKEN){toast('Entre de novo pra salvar');return}
-  const payload={token:TOKEN,tenant_slug:VENDO||undefined,
-    nome_loja:$('#inpNome').value,frase:$('#inpFrase').value,cor_hex:COR_ATUAL,instagram:$('#inpInstagram').value,
-    categorias:$$('#catsPerfil .chip.on').map(c=>c.textContent.trim()),
-    codigos:{shopee:$('#codShopee').value,mercadolivre:$('#codML').value,amazon:$('#codAmazon').value}};
-  if(FOTO_NOVA)payload.foto=FOTO_NOVA;
-  if(!VENDO)payload.nome_pessoa=$('#inpNomePessoa').value;
-  try{const d=await api('salvar-perfil',payload);if(d.ok){FOTO_NOVA=null;aplicar(d);toast('Perfil salvo de verdade — tá no banco ✓')}else toast(d.erro||'Não salvou')}catch(e){toast('Sem conexão agora — tenta de novo')}
+  const txt=btn.textContent;btn.disabled=true;btn.textContent='Salvando...';
+  try{const d=await api('salvar-perfil',payload);
+    if(d.ok){FOTO_NOVA=null;aplicar(d);toast(okMsg)}
+    else toast(d.erro||'Não salvou — tenta de novo')}
+  catch(e){toast('Sem conexão agora — tenta de novo')}
+  btn.disabled=false;btn.textContent=txt;
+}
+$('#btnSalvarDados').addEventListener('click',()=>{
+  const p={token:TOKEN,tenant_slug:VENDO||undefined,nome_loja:$('#inpNome').value,frase:$('#inpFrase').value,cor_hex:COR_ATUAL};
+  if(FOTO_NOVA)p.foto=FOTO_NOVA;
+  if(!VENDO)p.nome_pessoa=$('#inpNomePessoa').value;
+  salvarTrecho(p,$('#btnSalvarDados'),'Dados da lojinha salvos ✓');
+});
+$('#btnAplicarCats').addEventListener('click',()=>{
+  salvarTrecho({token:TOKEN,tenant_slug:VENDO||undefined,categorias:$$('#catsPerfil .chip.on').map(c=>c.textContent.trim())},
+    $('#btnAplicarCats'),'Categorias aplicadas ✓');
+});
+$('#btnSalvarCodigos').addEventListener('click',()=>{
+  salvarTrecho({token:TOKEN,tenant_slug:VENDO||undefined,instagram:$('#inpInstagram').value,
+    codigos:{shopee:$('#codShopee').value,mercadolivre:$('#codML').value,amazon:$('#codAmazon').value}},
+    $('#btnSalvarCodigos'),'Códigos salvos ✓');
 });
 (async()=>{if(!TOKEN)return;try{const d=await api('eu',{token:TOKEN});if(d.ok)aplicar(d);else{localStorage.removeItem('gb_token');TOKEN='';if(d.codigo==='revogado'||d.codigo==='pendente')mostrarPendente(d.erro)}}catch(e){}})();
 
