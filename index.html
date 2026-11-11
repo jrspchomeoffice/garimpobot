@@ -714,7 +714,16 @@ async function salvarTrecho(payload,btn,okMsg){
   try{const d=await api('salvar-perfil',payload);
     if(d.ok){FOTO_NOVA=null;aplicar(d);toast(okMsg)}
     else toast(d.erro||'Não salvou — tenta de novo')}
-  catch(e){toast('Sem conexão agora — tenta de novo')}
+  catch(e){
+    // A gravação pode ter chegado e só a confirmação se perdeu na
+    // volta (aconteceu no celular do JADERSON em 11/11: nome e foto
+    // gravaram, mas a tela dizia "sem conexão"). Antes de declarar
+    // erro, confere o estado real no servidor.
+    let confirmou=false;
+    try{const d2=await api('eu',{token:TOKEN,tenant_slug:VENDO||undefined});
+      if(d2.ok){FOTO_NOVA=null;aplicar(d2);confirmou=true;toast(okMsg)}}catch(e2){}
+    if(!confirmou)toast('Sem conexão agora — tenta de novo');
+  }
   btn.disabled=false;btn.textContent=txt;
 }
 $('#btnSalvarDados').addEventListener('click',()=>{
