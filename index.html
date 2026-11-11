@@ -161,11 +161,11 @@
     <div class="dash-hero">
       <div class="data" id="dashData">hoje</div>
       <h2 id="saudacao">Olá!</h2>
-      <p class="frase">Seu sistema já está montado e rodando no servidor. Falta só ativar: seu grupo, o chip do robô e seus códigos de afiliada. Aí o robô começa sozinho — e você não precisa fazer mais nada.</p>
+      <p class="frase" id="heroFrase">Carregando o dia da sua lojinha…</p>
       <div class="dash-stats">
-        <div><b>0</b><span>cliques hoje</span></div>
-        <div><b>0</b><span>membros</span></div>
-        <div><b>—</b><span>aguardando ativação</span></div>
+        <div><b id="stPostadas">–</b><span>ofertas postadas hoje</span></div>
+        <div><b id="stMembros">–</b><span>membros no grupo</span></div>
+        <div><b id="stProxima">–</b><span>próxima postagem</span></div>
       </div>
     </div>
     <div class="card" id="cardInstalar" style="display:none">
@@ -174,27 +174,22 @@
       <button class="btn" id="btnInstalarCard">Instalar aplicativo</button>
     </div>
     <div class="kpis">
-      <div class="kpi"><span>Ofertas postadas hoje</span><b>0</b><span class="delta">de 0 garimpadas</span></div>
-      <div class="kpi"><span>Cliques nas ofertas</span><b>0</b><span class="delta">começa quando o robô ativar</span></div>
-      <div class="kpi"><span>Membros novos hoje</span><b>0</b><span class="delta">grupo ainda não conectado</span></div>
-      <div class="kpi"><span>Comissão estimada hoje</span><b>R$ 0,00</b><span>estimativa · as lojas pagam em até 60 dias</span></div>
+      <div class="kpi"><span>Ofertas postadas hoje</span><b id="kPostadas">–</b><span class="delta" id="kPostadasD">consultando…</span></div>
+      <div class="kpi"><span>Na fila pra postar</span><b id="kFila">–</b><span class="delta" id="kFilaD">consultando…</span></div>
+      <div class="kpi"><span>Membros no grupo</span><b id="kMembros">–</b><span class="delta" id="kMembrosD">consultando…</span></div>
+      <div class="kpi"><span>Última postagem</span><b id="kUltima">–</b><span class="delta" id="kUltimaD">consultando…</span></div>
     </div>
     <div class="card">
-      <h2>Falta pouco pra ligar sua lojinha</h2>
-      <p class="sub">O motor já está pronto no servidor. São estes os passos que faltam:</p>
-      <div class="linha"><div class="cresce"><b>1 · Seu grupo do WhatsApp</b><small>Você cria no seu número (2 minutinhos) — ou a gente usa um que você já tenha</small></div><span class="pill warn">AGUARDANDO</span></div>
-      <div class="linha"><div class="cresce"><b>2 · O chip do robô</b><small>Um chip pré-pago baratinho, só pra lojinha — é ele quem vai postar</small></div><span class="pill warn">AGUARDANDO</span></div>
-      <div class="linha"><div class="cresce"><b>3 · Seus códigos da Shopee e do Mercado Livre</b><small>Ficam guardados na aba Perfil — é com eles que o robô monta o SEU link</small></div><span class="pill warn">AGUARDANDO</span></div>
+      <h2 id="passosTitulo">Falta pouco pra ligar sua lojinha</h2>
+      <p class="sub">São estes os passos — o selo muda sozinho quando cada um fica pronto:</p>
+      <div class="linha"><div class="cresce"><b>1 · Seu grupo do WhatsApp</b><small>Você cria no seu número (2 minutinhos) — ou a gente usa um que você já tenha</small></div><span class="pill warn" id="ppGrupo">AGUARDANDO</span></div>
+      <div class="linha"><div class="cresce"><b>2 · O chip do robô</b><small>Um chip pré-pago baratinho, só pra lojinha — é ele quem vai postar</small></div><span class="pill warn" id="ppChip">AGUARDANDO</span></div>
+      <div class="linha"><div class="cresce"><b>3 · Seus códigos da Shopee e do Mercado Livre</b><small>Ficam guardados na aba Perfil — é com eles que o robô monta o SEU link</small></div><span class="pill warn" id="ppCodigos">AGUARDANDO</span></div>
       <div class="linha"><div class="cresce"><b>4 · O robô começa sozinho</b><small>Quando os 3 passos acima estiverem certos, ele garimpa e posta sem você fazer nada</small></div><span class="pill">AUTOMÁTICO</span></div>
     </div>
     <div class="card">
       <h2>Melhor oferta de hoje</h2>
-      <p class="sub" style="margin:.4rem 0 0">Quando o robô começar a postar, a oferta campeã de cliques do dia aparece aqui.</p>
-    </div>
-    <div class="card">
-      <h2>Avisos</h2>
-      <div class="linha"><div class="cresce"><b>Sistema montado no servidor</b><small>Banco de dados, robô e o relógio de tarefas já estão de pé e conferidos</small></div><span class="pill">PRONTO</span></div>
-      <div class="linha"><div class="cresce"><b>Faltam 3 passos pra ativar</b><small>Grupo, chip do robô e seus códigos de afiliada — veja o cartão acima</small></div><span class="pill warn">ATIVAÇÃO</span></div>
+      <p class="sub" style="margin:.4rem 0 0" id="melhorTxt">Quando o robô postar, a oferta com a melhor nota do dia aparece aqui.</p>
     </div>
     <div class="card" id="cardMaster" style="display:none">
       <h2>Suas lojinhas (visão master)</h2>
@@ -289,20 +284,9 @@
       <button class="btn claro" id="btnGruposAtualizar" style="margin-top:.5rem">Atualizar lista</button>
     </div>
     <div class="card">
-      <h2>Canal do Telegram</h2>
-      <div class="nums" style="margin:.5rem 0">
-        <div class="num"><b>0</b><span>seguidores</span></div>
-        <div class="num"><b>0</b><span>posts hoje</span></div>
-        <div class="num"><b>0</b><span>cliques hoje</span></div>
-      </div>
-      <small style="color:var(--suave)">Sem limite de membros — é pra onde o grupo aponta quando o WhatsApp lota.</small>
-    </div>
-    <div class="card">
       <h2>Resumo da semana</h2>
-      <div class="linha"><div class="cresce"><b>Mensagens enviadas</b></div><b>0</b></div>
-      <div class="linha"><div class="cresce"><b>Cliques nas ofertas</b></div><b>0</b></div>
-      <div class="linha"><div class="cresce"><b>Membros novos</b></div><b>0</b></div>
-      <div class="linha"><div class="cresce"><b>Melhor horário da semana</b><small>Mais cliques por postagem</small></div><b>—</b></div>
+      <div class="linha"><div class="cresce"><b>Ofertas postadas</b></div><b id="rsPostadas">–</b></div>
+      <div class="linha"><div class="cresce"><b>Ofertas avaliadas pelo robô</b></div><b id="rsAvaliadas">–</b></div>
     </div>
   </section>
 
@@ -411,7 +395,8 @@ $$('nav button').forEach(b=>b.addEventListener('click',()=>{
   $$('nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
   $$('.tela').forEach(t=>t.classList.remove('on'));$('#tela-'+b.dataset.tela).classList.add('on');
   if(b.dataset.tela==='conexao')atualizarCx();
-  if(b.dataset.tela==='grupos')carregarGrupos();
+  if(b.dataset.tela==='grupos'){carregarGrupos();if(typeof carregarInicio==='function')carregarInicio()}
+  if(b.dataset.tela==='inicio'&&typeof carregarInicio==='function')carregarInicio();
   window.scrollTo({top:0});
 }));
 /* Conexão de verdade — WAHA via fachada (igual ao Gestor Ultra) */
@@ -635,6 +620,7 @@ function aplicar(d){
     const swR=$('#swRobo');if(swR)swR.checked=!!rg.robo_ligado;
     $$('.swLoja[data-loja]').forEach(s=>{s.checked=(rg.lojas_ativas||[]).includes(s.dataset.loja)});
     if(typeof atualizarStatusRobo==='function')atualizarStatusRobo();
+    if(typeof carregarInicio==='function')carregarInicio();
   }
   if(!L&&u.admin){$('#nomeTopo').textContent='GarimpoBot — Admin'}
   const minhaLojinha=!u.admin;
@@ -659,6 +645,33 @@ $('#btnSalvar').addEventListener('click',async()=>{
   try{const d=await api('salvar-perfil',payload);if(d.ok){aplicar(d);toast('Perfil salvo de verdade — tá no banco ✓')}else toast(d.erro||'Não salvou')}catch(e){toast('Sem conexão agora — tenta de novo')}
 });
 (async()=>{if(!TOKEN)return;try{const d=await api('eu',{token:TOKEN});if(d.ok)aplicar(d);else{localStorage.removeItem('gb_token');TOKEN='';if(d.codigo==='revogado'||d.codigo==='pendente')mostrarPendente(d.erro)}}catch(e){}})();
+
+/* ===== Início em tempo real (endpoint /inicio) ===== */
+function horaCurta(iso){try{return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}catch(e){return '—'}}
+async function carregarInicio(){
+  if(!TOKEN)return;
+  try{const d=await api('inicio',dadosCx());if(!d||!d.ok)return;
+    const f=$('#heroFrase');
+    if(!d.robo_ligado)f.textContent='Seu robô está desligado agora. Quando quiser, liga ele na aba Robô que ele volta a garimpar e postar sozinho.';
+    else if(!d.conectado)f.textContent='Falta conectar o chip do robô pra ele começar a postar — é rapidinho, na aba Conexão.';
+    else if(!d.grupo)f.textContent='Chip conectado! Agora falta ligar o robô no seu grupo, na aba Grupos.';
+    else f.textContent='Seu robô está trabalhando por você: hoje ele já avaliou '+d.garimpadas_hoje+' ofertas e postou '+d.postadas_hoje+' no grupo '+d.grupo.nome+'.';
+    $('#stPostadas').textContent=d.postadas_hoje;
+    $('#stMembros').textContent=(d.grupo&&d.grupo.membros!=null)?d.grupo.membros:'—';
+    $('#stProxima').textContent=d.proxima_em?horaCurta(d.proxima_em):'—';
+    $('#kPostadas').textContent=d.postadas_hoje;$('#kPostadasD').textContent='de '+d.garimpadas_hoje+' avaliadas hoje';
+    $('#kFila').textContent=d.na_fila;$('#kFilaD').textContent=d.na_fila?(d.proxima_em?('próxima às '+horaCurta(d.proxima_em)):'esperando o horário'):'nada esperando agora';
+    $('#kMembros').textContent=(d.grupo&&d.grupo.membros!=null)?d.grupo.membros:'—';$('#kMembrosD').textContent=d.grupo?('no grupo '+d.grupo.nome):'nenhum grupo ligado';
+    $('#kUltima').textContent=d.ultima?horaCurta(d.ultima.em):'—';$('#kUltimaD').textContent=d.ultima?d.ultima.titulo:'ainda sem postagens';
+    const pill=(id,ok)=>{const p=$(id);if(!p)return;p.className='pill '+(ok?'ok':'warn');p.textContent=ok?'PRONTO':'AGUARDANDO'};
+    pill('#ppGrupo',!!d.grupo);pill('#ppChip',!!d.conectado);pill('#ppCodigos',!!(d.tem_shopee||d.tem_ml));
+    if(d.grupo&&d.conectado&&(d.tem_shopee||d.tem_ml))$('#passosTitulo').textContent='Sua lojinha está no ar 🎉';
+    const m=$('#melhorTxt');if(m)m.textContent=d.melhor_hoje?('🏆 '+d.melhor_hoje.titulo+' — nota '+d.melhor_hoje.score+' no garimpo'):'Quando o robô postar, a oferta com a melhor nota do dia aparece aqui.';
+    const rp=$('#rsPostadas');if(rp)rp.textContent=d.postadas_semana;
+    const ra=$('#rsAvaliadas');if(ra)ra.textContent=d.avaliadas_semana;
+  }catch(e){}
+}
+setInterval(()=>{const t=$('#tela-inicio');if(t&&t.classList.contains('on')&&!document.hidden)carregarInicio()},60000);
 
 /* ===== GarimpoBot v12 — aprovação + aba Admin ===== */
 function mostrarPendente(msg){
