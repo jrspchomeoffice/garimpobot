@@ -293,6 +293,10 @@
       <div class="chips" id="aquecChips" style="margin:.35rem 0 .3rem">
         <button class="chip" data-dias="0">Desligado</button><button class="chip" data-dias="7">7 dias</button><button class="chip" data-dias="14">14 dias</button>
       </div>
+      <div style="margin-top:.7rem"><b style="font-size:.92rem">Impulso dos básicos</b><br><small style="color:var(--suave)">Item baratinho (pote, organizador, creme, utensílio) passa na frente dos itens caros da fila, dentro da mesma prioridade.</small></div>
+      <div class="chips" id="impulsoChips" style="margin:.35rem 0 .3rem">
+        <button class="chip" data-ate="0">Desligado</button><button class="chip" data-ate="50">Até R$ 50</button><button class="chip" data-ate="80">Até R$ 80</button><button class="chip" data-ate="120">Até R$ 120</button>
+      </div>
       <div class="linha" style="margin-top:.5rem"><div class="cresce"><b>Silêncio da noite</b><small id="silencioTxt">Não posta entre 23h e 6h30</small></div><label class="sw"><input type="checkbox" id="swSilencio"><i></i></label></div>
       <div class="linha"><div class="cresce"><b>Não repetir a mesma oferta</b><small>Mesmo produto só volta se o preço cair de verdade</small></div><span class="pill ok">Sempre ativo</span></div>
       <div class="linha"><div class="cresce"><b>Conferir o preço antes de postar</b><small>Se subiu ou acabou, ele pula a oferta</small></div><span class="pill ok">Sempre ativo</span></div>
@@ -722,7 +726,7 @@ function aplicar(d){
     if(rg.desconto_min_pct!=null){$('#rDesc').value=rg.desconto_min_pct;$('#vDesc').textContent=rg.desconto_min_pct+'%'}
     if(rg.avaliacao_minima!=null){$('#rNota').value=rg.avaliacao_minima;$('#vNota').textContent=(+rg.avaliacao_minima).toFixed(1)}
     if(Array.isArray(rg.horarios)){const hs=rg.horarios.map(h=>String(h).slice(0,5));$$('#horarios .chip').forEach(c=>c.classList.toggle('on',hs.includes(c.textContent.trim())))}
-    REGRAS=rg;pintarSilencio();pintarAquec();
+    REGRAS=rg;pintarSilencio();pintarAquec();pintarImpulso();
     const swR=$('#swRobo');if(swR)swR.checked=!!rg.robo_ligado;
     $$('.swLoja[data-loja]').forEach(s=>{s.checked=(rg.lojas_ativas||[]).includes(s.dataset.loja)});
     if(typeof atualizarStatusRobo==='function')atualizarStatusRobo();
@@ -785,6 +789,8 @@ $('#btnSenha').addEventListener('click',async()=>{const a=$('#senhaAtual').value
   btn.disabled=false;btn.textContent='Trocar senha'});
 function pintarAquec(){if(!REGRAS)return;const dv=parseInt(REGRAS.aquecimento_dias||0);$$('#aquecChips .chip').forEach(c=>c.classList.toggle('on',parseInt(c.dataset.dias)===dv))}
 $$('#aquecChips .chip').forEach(c=>c.addEventListener('click',()=>{$$('#aquecChips .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');salvarRegras({aquecimento_dias:parseInt(c.dataset.dias)})}));
+function pintarImpulso(){if(!REGRAS)return;const iv=parseFloat(REGRAS.impulso_basicos_ate||0);$$('#impulsoChips .chip').forEach(c=>c.classList.toggle('on',parseFloat(c.dataset.ate)===iv))}
+$$('#impulsoChips .chip').forEach(c=>c.addEventListener('click',()=>{$$('#impulsoChips .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');salvarRegras({impulso_basicos_ate:parseFloat(c.dataset.ate)})}));
 $('#btnAplicarCats').addEventListener('click',()=>{
   salvarTrecho({token:TOKEN,tenant_slug:VENDO||undefined,categorias:$$('#catsPerfil .chip.on').map(c=>c.textContent.trim())},
     $('#btnAplicarCats'),'Categorias aplicadas ✓');
