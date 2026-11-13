@@ -47,6 +47,7 @@
   .btn:disabled{opacity:.45;cursor:default}
   input[type=text],input[type=tel]{width:100%;border:1.5px solid var(--linha);border-radius:12px;padding:.6rem .8rem;font-size:.93rem;background:#fff;outline:none;margin:.25rem 0 .6rem}
   input[type=text]:focus{border-color:var(--cor)}
+  input[type=time]{border:1.5px solid var(--linha);border-radius:12px;padding:.45rem .55rem;font-size:.93rem;background:#fff;outline:none}
   label.rot{font-size:.8rem;font-weight:700;color:var(--vinho)}
   input[type=range]{width:100%;accent-color:var(--cor)}
   .valor{font-weight:800;color:var(--cor-esc)}
@@ -298,6 +299,7 @@
         <button class="chip" data-ate="0">Desligado</button><button class="chip" data-ate="50">Até R$ 50</button><button class="chip" data-ate="80">Até R$ 80</button><button class="chip" data-ate="120">Até R$ 120</button>
       </div>
       <div class="linha" style="margin-top:.5rem"><div class="cresce"><b>Silêncio da noite</b><small id="silencioTxt">Não posta entre 23h e 6h30</small></div><label class="sw"><input type="checkbox" id="swSilencio"><i></i></label></div>
+      <div class="linha" style="margin-top:.1rem"><div class="cresce"><small style="color:var(--suave)">Horário do silêncio — você escolhe</small></div><span style="display:flex;gap:.4rem;align-items:center"><input type="time" id="silIni" value="23:00"><small>às</small><input type="time" id="silFim" value="06:30"></span></div>
       <div class="linha"><div class="cresce"><b>Não repetir a mesma oferta</b><small>Mesmo produto só volta se o preço cair de verdade</small></div><span class="pill ok">Sempre ativo</span></div>
       <div class="linha"><div class="cresce"><b>Conferir o preço antes de postar</b><small>Se subiu ou acabou, ele pula a oferta</small></div><span class="pill ok">Sempre ativo</span></div>
     </div>
@@ -575,8 +577,10 @@ async function atualizarStatusRobo(){
 $('#swRobo').addEventListener('change',e=>salvarRegras({robo_ligado:e.target.checked}));
 $$('#ritmo .chip').forEach(c=>c.addEventListener('click',()=>{$$('#ritmo .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');salvarRegras({intervalo_min_min:parseInt(c.dataset.min)})}));
 function fmtHora(h){if(!h)return'';const[a,b]=String(h).slice(0,5).split(':');return b==='00'?a.replace(/^0/,'')+'h':a.replace(/^0/,'')+'h'+b}
-function pintarSilencio(){const sw=$('#swSilencio'),tx=$('#silencioTxt');if(!sw||!REGRAS)return;const ini=String(REGRAS.silencio_inicio||'').slice(0,5),fim=String(REGRAS.silencio_fim||'').slice(0,5);const ligado=!!ini&&!!fim&&ini!==fim;sw.checked=ligado;if(tx)tx.textContent=ligado?('Não posta entre '+fmtHora(ini)+' e '+fmtHora(fim)):'Desligado — pode postar a noite toda'}
-$('#swSilencio').addEventListener('change',e=>{if(e.target.checked)salvarRegras({silencio_inicio:'23:00',silencio_fim:'06:30'});else salvarRegras({silencio_inicio:'00:00',silencio_fim:'00:00'})});
+function pintarSilencio(){const sw=$('#swSilencio'),tx=$('#silencioTxt');if(!sw||!REGRAS)return;const ini=String(REGRAS.silencio_inicio||'').slice(0,5),fim=String(REGRAS.silencio_fim||'').slice(0,5);const ligado=!!ini&&!!fim&&ini!==fim;sw.checked=ligado;if(tx)tx.textContent=ligado?('Não posta entre '+fmtHora(ini)+' e '+fmtHora(fim)):'Desligado — pode postar a noite toda';if(ligado){const a=$('#silIni'),b=$('#silFim');if(a)a.value=ini;if(b)b.value=fim}}
+$('#swSilencio').addEventListener('change',e=>{if(e.target.checked){const a=($('#silIni').value||'23:00'),b=($('#silFim').value||'06:30');salvarRegras({silencio_inicio:a,silencio_fim:b})}else salvarRegras({silencio_inicio:'00:00',silencio_fim:'00:00'})});
+function salvarSilencioInputs(){const a=$('#silIni'),b=$('#silFim');if(!a||!b||!a.value||!b.value||a.value===b.value)return;salvarRegras({silencio_inicio:a.value,silencio_fim:b.value})}
+$('#silIni').addEventListener('change',salvarSilencioInputs);$('#silFim').addEventListener('change',salvarSilencioInputs);
 $('#btnPausar').addEventListener('click',()=>salvarRegras({robo_ligado:false}));
 $('#btnVoltar').addEventListener('click',()=>salvarRegras({robo_ligado:true}));
 function lojasMarcadas(){return $$('.swLoja[data-loja]').filter(s=>s.checked).map(s=>s.dataset.loja)}
