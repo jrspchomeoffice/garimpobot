@@ -50,6 +50,8 @@
   .campo-senha input{width:100%;border:1.5px solid var(--linha);border-radius:12px;padding:.6rem 2.6rem .6rem .8rem;font-size:.93rem;background:#fff;outline:none;margin:.25rem 0 .6rem}
   .campo-senha input:focus{border-color:var(--cor)}
   .olho{position:absolute;right:.4rem;top:50%;transform:translateY(-58%);background:none;border:0;font-size:1.05rem;cursor:pointer;padding:.35rem;line-height:1}
+  textarea{width:100%;border:1.5px solid var(--linha);border-radius:12px;padding:.6rem .8rem;font-size:.93rem;background:#fff;outline:none;margin:.25rem 0 .6rem;font-family:inherit;resize:vertical}
+  textarea:focus{border-color:var(--cor)}
   input[type=text]:focus{border-color:var(--cor)}
   input[type=time]{border:1.5px solid var(--linha);border-radius:12px;padding:.45rem .55rem;font-size:.93rem;background:#fff;outline:none}
   label.rot{font-size:.8rem;font-weight:700;color:var(--vinho)}
@@ -166,7 +168,7 @@
     <div style="flex:1"><b id="nomeTopo">Sua lojinha</b><small><span class="dot off" id="dotRobo"></span><span id="statusRobo">Robô aguardando ativação</span></small></div>
     <span class="pill off" id="pillNumero">WhatsApp não conectado</span>
   </header>
-  <nav><div class="dentro"><button data-tela="inicio" class="on"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>Início</button><button data-tela="perfil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Perfil</button><button data-tela="conexao"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.45c.9.34 1.84.57 2.8.7A2 2 0 0 1 22 16.9z"/></svg>Conexão</button><button data-tela="robo"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M8 4h8"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/><path d="M9 17.5h6"/></svg>Robô</button><button data-tela="grupos"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Grupos</button><button data-tela="garimpos"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Garimpos</button><button data-tela="admin" id="navAdmin" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V5z"/><path d="m9 12 2 2 4-4"/></svg>Admin</button></div></nav>
+  <nav><div class="dentro"><button data-tela="inicio" class="on"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>Início</button><button data-tela="perfil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Perfil</button><button data-tela="conexao"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.45c.9.34 1.84.57 2.8.7A2 2 0 0 1 22 16.9z"/></svg>Conexão</button><button data-tela="robo"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M8 4h8"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/><path d="M9 17.5h6"/></svg>Robô</button><button data-tela="grupos"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Grupos</button><button data-tela="garimpos"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Garimpos</button><button data-tela="converter"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Converter</button><button data-tela="admin" id="navAdmin" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V5z"/><path d="m9 12 2 2 4-4"/></svg>Admin</button></div></nav>
   <!-- ============ ABA INÍCIO (DASHBOARD) ============ -->
   <section class="tela on" id="tela-inicio">
     <div class="dash-hero">
@@ -350,6 +352,27 @@
       <div id="listaGarimpo"></div>
     </div>
   </section>
+  <!-- ============ ABA CONVERTER ============ -->
+  <section class="tela" id="tela-converter">
+    <div class="card">
+      <h2>Converter link pra minha lojinha</h2>
+      <p class="sub">Achou um produto por fora e quer ele com o <b>seu</b> código de afiliada? Cola o link do produto aqui — ou a mensagem inteira que tem o link — que eu devolvo ele prontinho com o seu código. Serve pra você comprar por ele ou mandar pra quem quiser.</p>
+      <p class="sub" id="convPraQuem"></p>
+      <label class="rot">Link do produto (Shopee ou Mercado Livre)</label>
+      <textarea id="convTexto" rows="3" placeholder="cola o link aqui…"></textarea>
+      <button class="btn" id="btnConverter" style="width:100%">Converter pro meu link</button>
+      <div id="convResultado" style="display:none;margin-top:.9rem">
+        <label class="rot">Seu link de afiliada 👇</label>
+        <input type="text" id="convLink" readonly>
+        <div style="display:flex;gap:.5rem;margin-top:.2rem">
+          <button class="btn" id="btnConvCopiar" style="flex:1">📋 Copiar link</button>
+          <a class="btn claro" id="convAbrir" href="#" target="_blank" rel="noopener" style="flex:1;text-decoration:none">Abrir o produto</a>
+        </div>
+        <p class="sub" id="convLojaInfo" style="margin-top:.5rem"></p>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ ABA ADMIN (só o dono da plataforma) ============ -->
   <section class="tela" id="tela-admin">
     <div class="card">
@@ -456,6 +479,7 @@ $$('nav button').forEach(b=>b.addEventListener('click',()=>{
   if(b.dataset.tela==='grupos'){carregarGrupos();if(typeof carregarInicio==='function')carregarInicio()}
   if(b.dataset.tela==='inicio'&&typeof carregarInicio==='function')carregarInicio();
   if(b.dataset.tela==='garimpos'&&typeof carregarGarimpos==='function')carregarGarimpos();
+  if(b.dataset.tela==='converter'&&typeof pintarConvPraQuem==='function')pintarConvPraQuem();
   window.scrollTo({top:0});
 }));
 /* Conexão de verdade — WAHA via fachada (igual ao Gestor Ultra) */
@@ -648,6 +672,22 @@ async function copiarOferta(id,btn){
     else toast(ERROS_POST[d&&d.erro]||'não deu pra montar o texto');
   }catch(e){toast('não deu pra montar o texto')}
 }
+function pintarConvPraQuem(){const el=$('#convPraQuem');if(!el)return;const L=DADOS&&DADOS.lojinha;
+  if(L)el.innerHTML='Convertendo com o código da lojinha: <b>'+escHtml(L.nome_loja)+'</b>';
+  else if(DADOS&&DADOS.usuario&&DADOS.usuario.admin)el.innerHTML='Você é o admin: abre uma lojinha na aba <b>Admin</b> (botão "Ver painel") pra converter com o código dela.';
+  else el.textContent=''}
+async function converterLink(){
+  const txt=$('#convTexto').value.trim();
+  if(!txt){toast('cola o link do produto primeiro');return}
+  const btn=$('#btnConverter');btn.disabled=true;btn.textContent='Convertendo…';
+  try{const d=await api('converter-link',dadosCx({texto:txt}));
+    if(d&&d.ok){$('#convLink').value=d.link;$('#convAbrir').href=d.link;$('#convLojaInfo').textContent=(d.loja==='shopee'?'Shopee':'Mercado Livre')+' · link da '+d.lojinha;$('#convResultado').style.display='block';toast('Link convertido ✓')}
+    else toast((d&&d.erro)||'não deu pra converter esse link');
+  }catch(e){toast('não deu pra converter esse link')}
+  btn.disabled=false;btn.textContent='Converter pro meu link';
+}
+$('#btnConverter').addEventListener('click',converterLink);
+$('#btnConvCopiar').addEventListener('click',async()=>{const v=$('#convLink').value;if(!v)return;try{await navigator.clipboard.writeText(v)}catch(e){$('#convLink').select();document.execCommand('copy')}toast('Link copiado — cola onde quiser 💛')});
 async function carregarGarimpos(){
   if(!TOKEN)return;
   try{const d=await api('garimpos',dadosCx());if(!d||!d.ok)return;
