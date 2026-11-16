@@ -696,7 +696,7 @@ async function converterLink(){
 }
 $('#btnConverter').addEventListener('click',converterLink);
 $('#btnConvCopiar').addEventListener('click',async()=>{const v=$('#convLink').value;if(!v)return;try{await navigator.clipboard.writeText(v)}catch(e){$('#convLink').select();document.execCommand('copy')}toast('Link copiado — cola onde quiser 💛')});
-$('#btnConvSalvar').addEventListener('click',async()=>{if(!CONV_TEXTO){toast('converte um link primeiro');return}const btn=$('#btnConvSalvar');btn.disabled=true;btn.textContent='Salvando…';try{const d=await api('salvar-link-manual',dadosCx({texto:CONV_TEXTO}));if(d&&d.ok)toast(d.ja_existia?'Esse link já tava salvo nos Garimpos':'Salvo nos Garimpos ✓');else toast((d&&d.erro)||'não deu pra salvar')}catch(e){toast('não deu pra salvar')}btn.disabled=false;btn.textContent='💾 Salvar nos Garimpos'});
+$('#btnConvSalvar').addEventListener('click',async()=>{if(!CONV_TEXTO){toast('converte um link primeiro');return}const btn=$('#btnConvSalvar');btn.disabled=true;btn.textContent='Salvando…';try{const d=await api('salvar-link-manual',dadosCx({texto:CONV_TEXTO}));if(d&&d.ok){toast(d.ja_existia?'Esse link já tava salvo nos Garimpos':'Salvo nos Garimpos ✓');CONV_TEXTO='';$('#convTexto').value='';$('#convLink').value='';$('#convResultado').style.display='none'}else toast((d&&d.erro)||'não deu pra salvar')}catch(e){toast('não deu pra salvar')}btn.disabled=false;btn.textContent='💾 Salvar nos Garimpos'});
 let MANUAIS=[];
 const ERROS_MANUAL={sem_grupo:'nenhum grupo ligado — liga um na aba Grupos',falha_envio:'não consegui enviar agora — tenta de novo',nao_encontrado:'esse link não está mais salvo'};
 function diaHora(iso){try{const d=new Date(iso);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' às '+horaCurta(iso)}catch(e){return ''}}
@@ -705,7 +705,7 @@ function linhaManual(m){
   const titulo=lj[0]+(m.external_id?(' · '+m.external_id):'');
   const infos='salvo em '+diaHora(m.criado_em)+(m.postada_em?(' · postado no grupo em '+diaHora(m.postada_em)):'');
   const pill=m.postada_em?'<span class="pill">POSTADO</span>':'';
-  return '<div class="oferta"><div class="mini" style="background:'+lj[1]+'">'+lj[2]+'</div><div class="cresce"><b>'+escHtml(titulo)+'</b><small>'+escHtml(m.url_limpa)+'</small><small>'+infos+'</small><div class="acoes"><button class="btn mini" onclick="postarManual(\''+m.id+'\',this)">⚡ Postar no grupo</button><button class="btn claro mini" onclick="copiarManual(\''+m.id+'\')">📋 Copiar link</button><button class="btn perigo mini" onclick="removerManual(\''+m.id+'\',this)">Remover</button></div></div>'+pill+'</div>';
+  return '<div class="oferta"><div class="mini" style="background:'+lj[1]+'">'+lj[2]+'</div><div class="cresce"><b>'+escHtml(titulo)+'</b><small>'+escHtml(m.url_limpa)+'</small><small>'+infos+'</small><div class="acoes"><button class="btn mini" onclick="postarManual(\''+m.id+'\',this)">⚡ Postar no grupo</button><button class="btn claro mini" onclick="copiarManual(\''+m.id+'\')">📋 Copiar link</button><a class="btn claro mini" href="'+m.link_afiliado+'" target="_blank" rel="noopener" style="text-decoration:none">🔗 Abrir o produto</a><button class="btn perigo mini" onclick="removerManual(\''+m.id+'\',this)">Remover</button></div></div>'+pill+'</div>';
 }
 async function carregarManuais(){
   if(!TOKEN)return;
