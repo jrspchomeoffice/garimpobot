@@ -298,6 +298,10 @@
       <div class="chips" id="impulsoChips" style="margin:.35rem 0 .3rem">
         <button class="chip" data-ate="0">Desligado</button><button class="chip" data-ate="50">Até R$ 50</button><button class="chip" data-ate="80">Até R$ 80</button><button class="chip" data-ate="120">Até R$ 120</button>
       </div>
+      <div style="margin-top:.7rem"><b style="font-size:.92rem">Teto de preço</b><br><small style="color:var(--suave)">Nada acima desse valor entra no seu grupo. Pro seu público, até produto com desconto enorme pode continuar caro — aqui você corta ele fora.</small></div>
+      <div class="chips" id="tetoChips" style="margin:.35rem 0 .3rem">
+        <button class="chip" data-teto="0">Sem teto</button><button class="chip" data-teto="100">Até R$ 100</button><button class="chip" data-teto="150">Até R$ 150</button><button class="chip" data-teto="200">Até R$ 200</button><button class="chip" data-teto="300">Até R$ 300</button>
+      </div>
       <div class="linha" style="margin-top:.5rem"><div class="cresce"><b>Silêncio da noite</b><small id="silencioTxt">Não posta entre 23h e 6h30</small></div><label class="sw"><input type="checkbox" id="swSilencio"><i></i></label></div>
       <div class="linha" style="margin-top:.1rem"><div class="cresce"><small style="color:var(--suave)">Horário do silêncio — você escolhe</small></div><span style="display:flex;gap:.4rem;align-items:center"><input type="time" id="silIni" value="23:00"><small>às</small><input type="time" id="silFim" value="06:30"></span></div>
       <div class="linha"><div class="cresce"><b>Não repetir a mesma oferta</b><small>Mesmo produto só volta se o preço cair de verdade</small></div><span class="pill ok">Sempre ativo</span></div>
@@ -562,7 +566,7 @@ async function salvarRegras(parcial,silencioso){
 async function atualizarStatusRobo(){
   const tit=$('#titRobo'),txt=$('#txtRobo'),st=$('#statusRobo'),dot=$('#dotRobo'),sw=$('#swRobo');
   if(!tit||!REGRAS)return;
-  pintarSilencio();pintarAquec();
+  pintarSilencio();pintarAquec();pintarImpulso();pintarTeto();
   const ligado=!!REGRAS.robo_ligado;
   if(sw)sw.checked=ligado;
   $('#btnPausar').disabled=!ligado;$('#btnVoltar').disabled=ligado;
@@ -596,7 +600,7 @@ $$('#horarios .chip').forEach(c=>c.addEventListener('click',()=>{c.classList.tog
 let G=[];
 const fmt=v=>v==null?'':v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const LOJAS={shopee:['Shopee','#ee4d2d','SH'],mercado_livre:['Mercado Livre','#b7a100','ML'],amazon:['Amazon','#ff9900','AM'],aliexpress:['AliExpress','#e62e04','AL']};
-const MOTIVOS={sem_conversao:'não deu pra montar com o seu link de afiliada',conversor_api_pendente:'a conversão dessa loja ainda não está ligada',conversor_sessao_pendente:'a conversão dessa loja ainda não está ligada',desconto_baixo:'desconto abaixo do mínimo da sua regra',nota_baixa:'nota abaixo do corte da sua regra',avaliacao_baixa:'avaliação do produto abaixo da sua regra',fora_do_nicho:'fora das categorias da sua lojinha',fora_loja:'essa loja está desligada nas suas regras',sem_produto:'não deu pra identificar o produto ou o preço',sem_comissao:'produto sem comissão',duplicada:'a mesma oferta já entrou hoje',em_quarentena:'fonte em observação',preco_subiu:'o preço subiu antes de postar',preco_suspeito:'preço estranho demais — o robô segurou por segurança'};
+const MOTIVOS={sem_conversao:'não deu pra montar com o seu link de afiliada',conversor_api_pendente:'a conversão dessa loja ainda não está ligada',conversor_sessao_pendente:'a conversão dessa loja ainda não está ligada',desconto_baixo:'desconto abaixo do mínimo da sua regra',nota_baixa:'nota abaixo do corte da sua regra',avaliacao_baixa:'avaliação do produto abaixo da sua regra',fora_do_nicho:'fora das categorias da sua lojinha',fora_loja:'essa loja está desligada nas suas regras',sem_produto:'não deu pra identificar o produto ou o preço',sem_comissao:'produto sem comissão',duplicada:'a mesma oferta já entrou hoje',em_quarentena:'fonte em observação',preco_subiu:'o preço subiu antes de postar',preco_suspeito:'preço estranho demais — o robô segurou por segurança',preco_acima_do_teto:'acima do teto de preço da sua lojinha'};
 function stDe(o){return o.estado==='postada'?'postada':(o.estado==='na_fila'||o.estado==='aprovada'||o.estado==='descoberta')?'fila':'descartada'}
 function infoDe(o){
   if(o.estado==='postada')return 'postada às '+horaCurta(o.postada_em||o.criada_em);
@@ -730,7 +734,7 @@ function aplicar(d){
     if(rg.desconto_min_pct!=null){$('#rDesc').value=rg.desconto_min_pct;$('#vDesc').textContent=rg.desconto_min_pct+'%'}
     if(rg.avaliacao_minima!=null){$('#rNota').value=rg.avaliacao_minima;$('#vNota').textContent=(+rg.avaliacao_minima).toFixed(1)}
     if(Array.isArray(rg.horarios)){const hs=rg.horarios.map(h=>String(h).slice(0,5));$$('#horarios .chip').forEach(c=>c.classList.toggle('on',hs.includes(c.textContent.trim())))}
-    REGRAS=rg;pintarSilencio();pintarAquec();pintarImpulso();
+    REGRAS=rg;pintarSilencio();pintarAquec();pintarImpulso();pintarTeto();
     const swR=$('#swRobo');if(swR)swR.checked=!!rg.robo_ligado;
     $$('.swLoja[data-loja]').forEach(s=>{s.checked=(rg.lojas_ativas||[]).includes(s.dataset.loja)});
     if(typeof atualizarStatusRobo==='function')atualizarStatusRobo();
@@ -794,6 +798,8 @@ $('#btnSenha').addEventListener('click',async()=>{const a=$('#senhaAtual').value
 function pintarAquec(){if(!REGRAS)return;const dv=parseInt(REGRAS.aquecimento_dias||0);$$('#aquecChips .chip').forEach(c=>c.classList.toggle('on',parseInt(c.dataset.dias)===dv))}
 $$('#aquecChips .chip').forEach(c=>c.addEventListener('click',()=>{$$('#aquecChips .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');salvarRegras({aquecimento_dias:parseInt(c.dataset.dias)})}));
 function pintarImpulso(){if(!REGRAS)return;const iv=parseFloat(REGRAS.impulso_basicos_ate||0);$$('#impulsoChips .chip').forEach(c=>c.classList.toggle('on',parseFloat(c.dataset.ate)===iv))}
+function pintarTeto(){if(!REGRAS)return;const tv=parseFloat(REGRAS.preco_maximo||0);$$('#tetoChips .chip').forEach(c=>c.classList.toggle('on',parseFloat(c.dataset.teto)===tv))}
+$$('#tetoChips .chip').forEach(c=>c.addEventListener('click',()=>{$$('#tetoChips .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');salvarRegras({preco_maximo:parseFloat(c.dataset.teto)})}));
 $$('#impulsoChips .chip').forEach(c=>c.addEventListener('click',()=>{$$('#impulsoChips .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');salvarRegras({impulso_basicos_ate:parseFloat(c.dataset.ate)})}));
 $('#btnAplicarCats').addEventListener('click',()=>{
   salvarTrecho({token:TOKEN,tenant_slug:VENDO||undefined,categorias:$$('#catsPerfil .chip.on').map(c=>c.textContent.trim())},
