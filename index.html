@@ -373,6 +373,8 @@
           <button class="btn" id="btnConvCopiar" style="flex:1">📋 Copiar link</button>
           <a class="btn claro" id="convAbrir" href="#" target="_blank" rel="noopener" style="flex:1;text-decoration:none">Abrir o produto</a>
         </div>
+        <label class="rot" style="margin-top:.6rem;display:block">Nome do item — pra você achar depois</label>
+        <input type="text" id="convTitulo" placeholder="ex.: macaco do carro">
         <button class="btn claro" id="btnConvSalvar" style="width:100%;margin-top:.5rem">💾 Salvar nos Garimpos</button>
         <p class="sub" style="margin-top:.3rem">Salvando, ele fica guardado na aba Garimpos, na seção “Links convertidos por mim” — de lá você posta no grupo ou copia quando quiser.</p>
         <p class="sub" id="convLojaInfo" style="margin-top:.5rem"></p>
@@ -689,23 +691,32 @@ async function converterLink(){
   if(!txt){toast('cola o link do produto primeiro');return}
   const btn=$('#btnConverter');btn.disabled=true;btn.textContent='Convertendo…';
   try{const d=await api('converter-link',dadosCx({texto:txt}));
-    if(d&&d.ok){CONV_TEXTO=txt;$('#convLink').value=d.link;$('#convAbrir').href=d.link;$('#convLojaInfo').textContent=(d.loja==='shopee'?'Shopee':'Mercado Livre')+' · link da '+d.lojinha;$('#convResultado').style.display='block';toast('Link convertido ✓')}
+    if(d&&d.ok){CONV_TEXTO=txt;$('#convLink').value=d.link;$('#convAbrir').href=d.link;$('#convTitulo').value=d.titulo||'';$('#convLojaInfo').textContent=(d.loja==='shopee'?'Shopee':'Mercado Livre')+' · link da '+d.lojinha;$('#convResultado').style.display='block';toast('Link convertido ✓')}
     else toast((d&&d.erro)||'não deu pra converter esse link');
   }catch(e){toast('não deu pra converter esse link')}
   btn.disabled=false;btn.textContent='Converter pro meu link';
 }
 $('#btnConverter').addEventListener('click',converterLink);
 $('#btnConvCopiar').addEventListener('click',async()=>{const v=$('#convLink').value;if(!v)return;try{await navigator.clipboard.writeText(v)}catch(e){$('#convLink').select();document.execCommand('copy')}toast('Link copiado — cola onde quiser 💛')});
-$('#btnConvSalvar').addEventListener('click',async()=>{if(!CONV_TEXTO){toast('converte um link primeiro');return}const btn=$('#btnConvSalvar');btn.disabled=true;btn.textContent='Salvando…';try{const d=await api('salvar-link-manual',dadosCx({texto:CONV_TEXTO}));if(d&&d.ok){toast(d.ja_existia?'Esse link já tava salvo nos Garimpos':'Salvo nos Garimpos ✓');CONV_TEXTO='';$('#convTexto').value='';$('#convLink').value='';$('#convResultado').style.display='none'}else toast((d&&d.erro)||'não deu pra salvar')}catch(e){toast('não deu pra salvar')}btn.disabled=false;btn.textContent='💾 Salvar nos Garimpos'});
+$('#btnConvSalvar').addEventListener('click',async()=>{if(!CONV_TEXTO){toast('converte um link primeiro');return}const btn=$('#btnConvSalvar');btn.disabled=true;btn.textContent='Salvando…';try{const d=await api('salvar-link-manual',dadosCx({texto:CONV_TEXTO,titulo:$('#convTitulo').value.trim()}));if(d&&d.ok){toast(d.ja_existia?'Esse link já tava salvo nos Garimpos':'Salvo nos Garimpos ✓');CONV_TEXTO='';$('#convTexto').value='';$('#convLink').value='';$('#convTitulo').value='';$('#convResultado').style.display='none'}else toast((d&&d.erro)||'não deu pra salvar')}catch(e){toast('não deu pra salvar')}btn.disabled=false;btn.textContent='💾 Salvar nos Garimpos'});
 let MANUAIS=[];
 const ERROS_MANUAL={sem_grupo:'nenhum grupo ligado — liga um na aba Grupos',falha_envio:'não consegui enviar agora — tenta de novo',nao_encontrado:'esse link não está mais salvo'};
 function diaHora(iso){try{const d=new Date(iso);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' às '+horaCurta(iso)}catch(e){return ''}}
 function linhaManual(m){
   const lj=LOJAS[m.loja]||[m.loja,'#888','··'];
-  const titulo=lj[0]+(m.external_id?(' · '+m.external_id):'');
+  const sub=lj[0]+(m.external_id?(' · '+m.external_id):'');
+  const titulo=m.titulo?escHtml(m.titulo):sub;
   const infos='salvo em '+diaHora(m.criado_em)+(m.postada_em?(' · postado no grupo em '+diaHora(m.postada_em)):'');
   const pill=m.postada_em?'<span class="pill">POSTADO</span>':'';
-  return '<div class="oferta"><div class="mini" style="background:'+lj[1]+'">'+lj[2]+'</div><div class="cresce"><b>'+escHtml(titulo)+'</b><small>'+escHtml(m.url_limpa)+'</small><small>'+infos+'</small><div class="acoes"><button class="btn mini" onclick="postarManual(\''+m.id+'\',this)">⚡ Postar no grupo</button><button class="btn claro mini" onclick="copiarManual(\''+m.id+'\')">📋 Copiar link</button><a class="btn claro mini" href="'+m.link_afiliado+'" target="_blank" rel="noopener" style="text-decoration:none">🔗 Abrir o produto</a><button class="btn perigo mini" onclick="removerManual(\''+m.id+'\',this)">Remover</button></div></div>'+pill+'</div>';
+  return '<div class="oferta"><div class="mini" style="background:'+lj[1]+'">'+lj[2]+'</div><div class="cresce"><b>'+titulo+'</b>'+(m.titulo?('<small>'+sub+'</small>'):'')+'<small>'+infos+'</small><div class="acoes"><button class="btn mini" onclick="postarManual(\''+m.id+'\',this)">⚡ Postar</button><button class="btn claro mini" onclick="copiarManual(\''+m.id+'\')">📋 Copiar</button><a class="btn claro mini" href="'+m.link_afiliado+'" target="_blank" rel="noopener" style="text-decoration:none">🔗 Abrir</a><button class="btn claro mini" onclick="renomearManual(\''+m.id+'\')">✏️ Nome</button><button class="btn perigo mini" onclick="removerManual(\''+m.id+'\',this)">Remover</button></div></div>'+pill+'</div>';
+}
+async function renomearManual(id){
+  const m=MANUAIS.find(x=>x.id===id);if(!m)return;
+  const novo=prompt('Nome do item (pra você reconhecer na lista):',m.titulo||'');
+  if(novo===null)return;
+  try{const d=await api('renomear-link-manual',dadosCx({link_id:id,titulo:novo.trim()}));
+    if(d&&d.ok){toast('Nome salvo ✓');carregarManuais()}else toast('não deu pra salvar o nome');
+  }catch(e){toast('não deu pra salvar o nome')}
 }
 async function carregarManuais(){
   if(!TOKEN)return;
