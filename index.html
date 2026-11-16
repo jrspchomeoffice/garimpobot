@@ -46,6 +46,10 @@
   .btn.perigo{background:#fff;color:#a12626;border:1.5px solid #e5a3a3}
   .btn:disabled{opacity:.45;cursor:default}
   input[type=text],input[type=tel]{width:100%;border:1.5px solid var(--linha);border-radius:12px;padding:.6rem .8rem;font-size:.93rem;background:#fff;outline:none;margin:.25rem 0 .6rem}
+  .campo-senha{position:relative}
+  .campo-senha input{width:100%;border:1.5px solid var(--linha);border-radius:12px;padding:.6rem 2.6rem .6rem .8rem;font-size:.93rem;background:#fff;outline:none;margin:.25rem 0 .6rem}
+  .campo-senha input:focus{border-color:var(--cor)}
+  .olho{position:absolute;right:.4rem;top:50%;transform:translateY(-58%);background:none;border:0;font-size:1.05rem;cursor:pointer;padding:.35rem;line-height:1}
   input[type=text]:focus{border-color:var(--cor)}
   input[type=time]{border:1.5px solid var(--linha);border-radius:12px;padding:.45rem .55rem;font-size:.93rem;background:#fff;outline:none}
   label.rot{font-size:.8rem;font-weight:700;color:var(--vinho)}
@@ -139,7 +143,7 @@
     <label>Seu e-mail</label>
     <input type="email" id="loginEmail" placeholder="voce@email.com" autocomplete="username">
     <label>Sua senha</label>
-    <input type="password" id="loginSenha" placeholder="••••••••" autocomplete="current-password">
+    <div class="campo-senha"><input type="password" id="loginSenha" placeholder="••••••••" autocomplete="current-password"><button type="button" class="olho" data-alvo="loginSenha" aria-label="Mostrar ou esconder a senha">👁</button></div>
     <button class="btn" id="btnEntrar">Entrar no meu painel</button>
     <p id="loginErro" style="display:none;color:#c0392b;font-weight:600;font-size:.88rem;margin-top:.7rem"></p>
     <p class="nota"><span id="loginModoTxt">Entre com seu acesso.</span><br>
@@ -427,11 +431,11 @@
       <h2>Sua senha</h2>
       <p class="sub">Pra trocar a senha de entrada do painel.</p>
       <label class="rot">Senha atual</label>
-      <input type="password" id="senhaAtual" autocomplete="current-password">
+      <div class="campo-senha"><input type="password" id="senhaAtual" autocomplete="current-password"><button type="button" class="olho" data-alvo="senhaAtual" aria-label="Mostrar ou esconder a senha">👁</button></div>
       <label class="rot">Senha nova</label>
-      <input type="password" id="senhaNova" autocomplete="new-password" placeholder="pelo menos 6 caracteres">
+      <div class="campo-senha"><input type="password" id="senhaNova" autocomplete="new-password" placeholder="pelo menos 6 caracteres"><button type="button" class="olho" data-alvo="senhaNova" aria-label="Mostrar ou esconder a senha">👁</button></div>
       <label class="rot">Repete a senha nova</label>
-      <input type="password" id="senhaConf" autocomplete="new-password">
+      <div class="campo-senha"><input type="password" id="senhaConf" autocomplete="new-password"><button type="button" class="olho" data-alvo="senhaConf" aria-label="Mostrar ou esconder a senha">👁</button></div>
       <button class="btn" id="btnSenha" style="width:100%;margin-top:.6rem">Trocar senha</button>
     </div>
   </section>
@@ -786,6 +790,7 @@ function pintarPrio(){const el=$('#prioLista');if(!el)return;const ativas=$$('#c
   el.innerHTML=ativas.map(n=>{const p=PRIO[n]||3;return '<div class="linha"><div class="cresce"><b style="font-size:.92rem">'+escHtml(n)+'</b></div><div class="prio-btns">'+[1,2,3].map(k=>'<button class="prio-b'+(p===k?' on':'')+'" data-cat="'+escHtml(n)+'" data-n="'+k+'">'+k+'</button>').join('')+'</div></div>'}).join('');
   $$('#prioLista .prio-b').forEach(b=>b.addEventListener('click',async()=>{const nome=b.dataset.cat,n=parseInt(b.dataset.n);PRIO[nome]=n;pintarPrio();
     try{const d=await api('salvar-prioridades',{token:TOKEN,tenant_slug:VENDO||undefined,prioridades:{[nome]:n}});if(d&&d.ok)toast(nome+' agora é prioridade '+n+' ✓');else toast('Não salvou a prioridade')}catch(e){toast('Sem conexão agora')}}))}
+$$('.olho').forEach(b=>b.addEventListener('click',()=>{const inp=document.getElementById(b.dataset.alvo);if(!inp)return;const mostra=inp.type==='password';inp.type=mostra?'text':'password';b.textContent=mostra?'🙈':'👁';}));
 $('#btnSenha').addEventListener('click',async()=>{const a=$('#senhaAtual').value,n=$('#senhaNova').value,cf=$('#senhaConf').value;
   if(!a){toast('Coloca sua senha atual');return}
   if(n.length<6){toast('A senha nova precisa de pelo menos 6 caracteres');return}
